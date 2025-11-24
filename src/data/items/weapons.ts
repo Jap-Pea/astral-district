@@ -1,0 +1,216 @@
+//src/data/items/weapons.ts
+import type { Item } from '../../types/item.types'
+export const WEAPONS: Item[] = [
+  // MELEE WEAPONS
+  {
+    id: 'weapon_knife',
+    name: 'Combat Knife',
+    description: 'A basic blade. Silent and deadly up close.',
+    type: 'weapon',
+    rarity: 'common',
+    marketValue: 500,
+    image: '/images/items/knife.png',
+    stackable: false,
+    usable: false,
+    equippable: true,
+    category: 'melee',
+    effects: {
+      strengthBoost: 5,
+      speedBoost: 2,
+    },
+  },
+  {
+    id: 'weapon_bat',
+    name: 'Metal Bat',
+    description: 'Classic street weapon. Intimidating and effective.',
+    type: 'weapon',
+    rarity: 'common',
+    marketValue: 800,
+    stackable: false,
+    usable: false,
+    equippable: true,
+    category: 'melee',
+    effects: {
+      strengthBoost: 8,
+    },
+  },
+  {
+    id: 'weapon_plasma_blade',
+    name: 'Plasma Blade',
+    description: 'Advanced energy weapon. Cuts through almost anything.',
+    type: 'weapon',
+    rarity: 'epic',
+    value: 50000,
+    stackable: false,
+    usable: false,
+    equippable: true,
+    category: 'melee',
+    effects: {
+      strengthBoost: 25,
+      speedBoost: 10,
+      dexterityBoost: 5,
+    },
+    requirements: {
+      level: 15,
+    },
+  },
+
+  // PISTOLS
+  {
+    id: 'weapon_pistol',
+    name: '9mm Pistol',
+    description: 'Standard sidearm. Reliable and concealable.',
+    type: 'weapon',
+    rarity: 'common',
+    value: 2000,
+    stackable: false,
+    usable: false,
+    equippable: true,
+    category: 'pistol',
+    effects: {
+      strengthBoost: 10,
+      dexterityBoost: 3,
+    },
+  },
+  {
+    id: 'weapon_heavy_pistol',
+    name: 'Heavy Pistol',
+    description: 'High-caliber handgun. More punch, less subtlety.',
+    type: 'weapon',
+    rarity: 'uncommon',
+    value: 5000,
+    stackable: false,
+    usable: false,
+    equippable: true,
+    category: 'pistol',
+    effects: {
+      strengthBoost: 15,
+      dexterityBoost: 2,
+    },
+    requirements: {
+      level: 5,
+    },
+  },
+  {
+    id: 'weapon_plasma_pistol',
+    name: 'Plasma Pistol',
+    description: 'Energy sidearm. Unlimited ammo, devastating power.',
+    type: 'weapon',
+    rarity: 'rare',
+    value: 25000,
+    stackable: false,
+    usable: false,
+    equippable: true,
+    category: 'pistol',
+    effects: {
+      strengthBoost: 20,
+      dexterityBoost: 8,
+    },
+    requirements: {
+      level: 10,
+    },
+  },
+
+  // RIFLES
+  {
+    id: 'weapon_rifle',
+    name: 'Assault Rifle',
+    description: 'Military-grade automatic weapon. High firepower.',
+    type: 'weapon',
+    rarity: 'uncommon',
+    marketValue: 15000,
+    stackable: false,
+    usable: false,
+    equippable: true,
+    category: 'rifle',
+    effects: {
+      strengthBoost: 25,
+      defenseBoost: 5,
+    },
+    requirements: {
+      level: 8,
+    },
+  },
+  {
+    id: 'weapon_sniper',
+    name: 'Sniper Rifle',
+    description: 'Long-range precision weapon. One shot, one kill.',
+    type: 'weapon',
+    rarity: 'rare',
+    value: 30000,
+    stackable: false,
+    usable: false,
+    equippable: true,
+    category: 'rifle',
+    effects: {
+      strengthBoost: 30,
+      dexterityBoost: 10,
+    },
+    requirements: {
+      level: 12,
+      stats: {
+        dexterity: 20,
+      },
+    },
+  },
+  {
+    id: 'weapon_rail_gun',
+    name: 'Rail Gun',
+    description: 'Electromagnetic weapon. Penetrates any armor.',
+    type: 'weapon',
+    rarity: 'legendary',
+    value: 100000,
+    stackable: false,
+    usable: false,
+    equippable: true,
+    category: 'rifle',
+    effects: {
+      strengthBoost: 50,
+      dexterityBoost: 15,
+      defenseBoost: 10,
+    },
+    requirements: {
+      level: 20,
+    },
+  },
+
+  // HEAVY WEAPONS
+  {
+    id: 'weapon_shotgun',
+    name: 'Combat Shotgun',
+    description: 'Close-quarters devastation. Room clearer.',
+    type: 'weapon',
+    rarity: 'uncommon',
+    marketValue: 12000,
+    stackable: false,
+    usable: false,
+    equippable: true,
+    category: 'heavy',
+    effects: {
+      strengthBoost: 22,
+      defenseBoost: 3,
+    },
+    requirements: {
+      level: 7,
+    },
+  },
+  {
+    id: 'weapon_rocket_launcher',
+    name: 'Rocket Launcher',
+    description: 'Explosive ordnance. Handle with extreme care.',
+    type: 'weapon',
+    rarity: 'epic',
+    marketValue: 75000,
+    stackable: false,
+    usable: false,
+    equippable: true,
+    category: 'heavy',
+    effects: {
+      strengthBoost: 45,
+      defenseBoost: 8,
+    },
+    requirements: {
+      level: 18,
+    },
+  },
+]
