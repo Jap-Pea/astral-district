@@ -614,7 +614,6 @@ const getRarityColor = (rarity: string) => {
 const styles = {
   container: {
     minHeight: '100vh',
-    background: '#0a0a0a',
     color: '#fff',
     padding: '2rem',
     fontFamily:

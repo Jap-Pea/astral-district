@@ -22,7 +22,7 @@ const PLANETS: Planet[] = [
     name: 'Earth',
     icon: (
       <img
-        src="images/earth.jpg"
+        src="images/planets/earth.jpg"
         alt="Earth"
         style={{ width: '100%', height: '100%', borderRadius: '50%' }}
       />
@@ -37,7 +37,13 @@ const PLANETS: Planet[] = [
   {
     id: 'alpha-centauri',
     name: 'Alpha Centauri',
-    icon: '🪐',
+    icon: (
+      <img
+        src="images/planets/alphaCentauri.jpg"
+        alt="Alpha Centauri"
+        style={{ width: '100%', height: '100%', borderRadius: '50%' }}
+      />
+    ),
     distance: 4.37,
     baseTime: 32,
     baseFuelCost: 1000,
@@ -47,7 +53,13 @@ const PLANETS: Planet[] = [
   {
     id: 'barnards-star',
     name: "Barnard's Star",
-    icon: '⭐',
+    icon: (
+      <img
+        src="images/planets/barnardsStar.jpg"
+        alt="Barnard's Star"
+        style={{ width: '100%', height: '100%', borderRadius: '50%' }}
+      />
+    ),
     distance: 5.96,
     baseTime: 74,
     baseFuelCost: 2500,
@@ -57,7 +69,13 @@ const PLANETS: Planet[] = [
   {
     id: 'sirius',
     name: 'Sirius',
-    icon: '💫',
+    icon: (
+      <img
+        src="images/planets/sirius.jpeg"
+        alt="Sirius"
+        style={{ width: '100%', height: '100%', borderRadius: '50%' }}
+      />
+    ),
     distance: 8.6,
     baseTime: 139,
     baseFuelCost: 3200,
@@ -67,7 +85,13 @@ const PLANETS: Planet[] = [
   {
     id: 'epsilon-eridani',
     name: 'Epsilon Eridani',
-    icon: '🌑',
+    icon: (
+      <img
+        src="images/planets/epsilonEridani.png"
+        alt="Epsilon Eridani"
+        style={{ width: '100%', height: '100%', borderRadius: '50%' }}
+      />
+    ),
     distance: 10.5,
     baseTime: 197,
     baseFuelCost: 4500,
@@ -77,7 +101,13 @@ const PLANETS: Planet[] = [
   {
     id: 'tau-ceti',
     name: 'Tau Ceti',
-    icon: '🌙',
+    icon: (
+      <img
+        src="images/planets/Tau_Ceti_e_planet.jpg"
+        alt="Tau Ceti"
+        style={{ width: '100%', height: '100%', borderRadius: '50%' }}
+      />
+    ),
     distance: 11.9,
     baseTime: 249,
     baseFuelCost: 5000,
@@ -87,7 +117,13 @@ const PLANETS: Planet[] = [
   {
     id: 'vega',
     name: 'Vega',
-    icon: '✨',
+    icon: (
+      <img
+        src="images/planets/vega.jpeg"
+        alt="Vega"
+        style={{ width: '100%', height: '100%', borderRadius: '50%' }}
+      />
+    ),
     distance: 25.1,
     baseTime: 301,
     baseFuelCost: 5500,
@@ -98,7 +134,13 @@ const PLANETS: Planet[] = [
   {
     id: 'betelgeuse',
     name: 'Betelgeuse',
-    icon: '🔴',
+    icon: (
+      <img
+        src="images/planets/betelguese.jpeg"
+        alt="Betelguese"
+        style={{ width: '100%', height: '100%', borderRadius: '50%' }}
+      />
+    ),
     distance: 548.3,
     baseTime: 395,
     baseFuelCost: 6200,
@@ -109,7 +151,13 @@ const PLANETS: Planet[] = [
   {
     id: 'sagittarius-a',
     name: 'Sagittarius A*',
-    icon: '🕳️',
+    icon: (
+      <img
+        src="images/planets/blackHole.jpg"
+        alt="Sag A"
+        style={{ width: '100%', height: '100%', borderRadius: '50%' }}
+      />
+    ),
     distance: 26000,
     baseTime: 500,
     baseFuelCost: 8000,
@@ -343,11 +391,11 @@ const StarGate = () => {
 
           <div style={styles.hyperspaceInfo}>
             <div style={{ fontSize: '16px', color: '#aaa', lineHeight: '1.8' }}>
-              🌌 You are currently traveling through hyperspace.
+              You are currently traveling through hyperspace.
               <br />
-              ⏰ All systems locked. Destination coordinates locked in.
+              All systems locked. Destination coordinates locked in.
               <br />
-              💫 Enjoy the view of compressed space-time.
+              Enjoy the view of compressed space-time.
             </div>
           </div>
 
@@ -363,9 +411,9 @@ const StarGate = () => {
     <div style={styles.container}>
       {/* Header */}
       <div style={styles.header}>
-        <h1 style={styles.title}>🌌 STARGATE TERMINAL</h1>
+        <h1 style={styles.title}>STARGATE TERMINAL</h1>
         <p style={styles.subtitle}>
-          Travel the galaxy. Expand your criminal empire across the stars.
+          Travel the galaxy. See what you can do across the stars.
         </p>
 
         <div style={styles.currentLocation}>
@@ -729,7 +777,7 @@ const FuelTypeCard = ({
 const styles = {
   container: {
     minHeight: '100vh',
-    background: '#0a0a0a',
+    background: 'rgba(0, 0, 0, 0.3)',
     color: '#fff',
     padding: '2rem',
     fontFamily:
@@ -749,7 +797,7 @@ const styles = {
     margin: '0 0 0.5rem 0',
     textTransform: 'uppercase' as const,
     letterSpacing: '4px',
-    background: 'linear-gradient(135deg, #00d9ff 0%, #b829ff 100%)',
+    background: '#ffffff71',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
   } as React.CSSProperties,
@@ -788,7 +836,7 @@ const styles = {
   } as React.CSSProperties,
 
   planetCard: {
-    background: '#1a1a1a',
+    background: 'rgba(32, 29, 182, 0.1)',
     border: '2px solid #333',
     borderRadius: '12px',
     padding: '2rem',
@@ -817,6 +865,7 @@ const styles = {
     margin: '0 0 0.5rem 0',
     textTransform: 'uppercase' as const,
     letterSpacing: '1px',
+    color: 'white',
   } as React.CSSProperties,
 
   planetDesc: {

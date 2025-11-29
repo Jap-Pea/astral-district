@@ -1,5 +1,5 @@
-import { ReactNode, useEffect, useState } from 'react'
-import { useLayoutEffect } from 'react'
+import { useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useUser } from '../../hooks/useUser'
 import { getTimeOfDay } from '../../utils/timeOfDay'
@@ -15,42 +15,14 @@ interface StatBarProps {
 const StatBar = ({ label, current, max, color, icon }: StatBarProps) => {
   const percentage = max > 0 ? (current / max) * 100 : 0
   const [showTooltip, setShowTooltip] = useState(false)
-  // countdownMs is managed as state for rendering
   const tickMs =
     window.localStorage.getItem('astralDevFastTicks') === 'true' ? 5000 : 600000
-  const [countdownMs, setCountdownMs] = useState<number | null>(null)
-
-  // Set initial countdownMs only when tooltip is shown for the first time
-  useLayoutEffect(() => {
-    if (showTooltip) {
-      let initialMs: number | null = null
-      if (label === 'Energy' && current < max) {
-        initialMs = (max - current) * tickMs
-      } else if (label === 'Heat' && current > 0) {
-        initialMs = current * tickMs
-      }
-      if (countdownMs === null) {
-        setCountdownMs(initialMs)
-      }
-    } else {
-      setCountdownMs(null)
-    }
-  }, [showTooltip, label, current, max, tickMs, countdownMs])
-
-  // Calculate initial countdownMs based on stat logic
-  const getInitialCountdownMs = () => {
-    const tickMs =
-      window.localStorage.getItem('astralDevFastTicks') === 'true'
-        ? 5000
-        : 600000
-    if (label === 'Energy' && current < max) {
-      return (max - current) * tickMs
-    }
-    if (label === 'Heat' && current > 0) {
-      return current * tickMs
-    }
-    return null
-  }
+  const energyPerTick = 5
+  // Use a timer to force re-render for countdown
+  // Removed unused 'now' state
+  useEffect(() => {
+    // No timer needed since countdown is static per hover
+  }, [showTooltip])
 
   // Format ms as h:mm:ss
   function formatMs(ms: number | null): string {
@@ -64,21 +36,16 @@ const StatBar = ({ label, current, max, color, icon }: StatBarProps) => {
       .padStart(2, '0')}`
   }
 
-  useEffect(() => {
-    if (showTooltip) {
-      const interval = setInterval(() => {
-        setCountdownMs((prev) => (prev !== null && prev > 0 ? prev - 1000 : 0))
-      }, 1000)
-      return () => clearInterval(interval)
-    }
-  }, [showTooltip])
-
+  // Calculate countdown for energy and heat
   let tooltip = ''
   if (label === 'Energy' && current < max) {
-    tooltip = `Regenerates in ${formatMs(countdownMs)}`
+    const ticksNeeded = Math.ceil((max - current) / energyPerTick)
+    const totalMs = ticksNeeded * tickMs
+    tooltip = `Regenerates in ${formatMs(totalMs)}`
   }
   if (label === 'Heat' && current > 0) {
-    tooltip = `Cools down in ${formatMs(countdownMs)}`
+    const totalMs = current * tickMs
+    tooltip = `Cools down in ${formatMs(totalMs)}`
   }
 
   return (
@@ -109,16 +76,48 @@ const StatBar = ({ label, current, max, color, icon }: StatBarProps) => {
 }
 
 const navItems = [
-  { name: 'Home', path: '/', icon: '🏠' },
+  {
+    name: 'Home',
+    path: '/',
+    icon: <img src="images/icons/home.png" alt="Home" />,
+  },
   { name: 'Crimes', path: '/crimes', icon: '🔫' },
-  { name: 'Gym', path: '/gym', icon: '💪' },
+  {
+    name: 'Gym',
+    path: '/gym',
+    icon: <img src="images/icons/gym.png" alt="Gym" />,
+  },
   { name: 'Items', path: '/inventory', icon: '🎒' },
-  { name: 'City', path: '/city', icon: '🏙️' },
-  { name: 'Shops', path: '/shops', icon: '🛒' },
-  { name: 'Casino', path: '/casino', icon: '🎰' },
-  { name: 'StarGate', path: '/stargate', icon: '✈️' },
-  { name: 'Jail', path: '/jail', icon: '⛓️' },
-  { name: 'Hospital', path: '/hospital', icon: '🏥' },
+  {
+    name: 'City',
+    path: '/city',
+    icon: <img src="images/icons/city.png" alt="City" />,
+  },
+  {
+    name: 'Shops',
+    path: '/shops',
+    icon: <img src="images/icons/shop.png" alt="Shops" />,
+  },
+  {
+    name: 'Casino',
+    path: '/casino',
+    icon: <img src="images/icons/casino.png" alt="Casino" />,
+  },
+  {
+    name: 'StarGate',
+    path: '/stargate',
+    icon: <img src="images/icons/black-hole.png" alt="Gym" />,
+  },
+  {
+    name: 'Jail',
+    path: '/jail',
+    icon: <img src="images/icons/jail.png" alt="Jail" />,
+  },
+  {
+    name: 'Hospital',
+    path: '/hospital',
+    icon: <img src="images/icons/hospital.png" alt="Hospital" />,
+  },
   { name: 'Network', path: '/network', icon: '🌐' },
 ]
 
@@ -127,7 +126,7 @@ interface MainLayoutProps {
 }
 
 export const MainLayout = ({ children }: MainLayoutProps) => {
-  const { user, isLoading, isInJail, isInHospital } = useUser()
+  const { user, isLoading, isInJail, isInHospital, isTraveling } = useUser()
   const location = useLocation()
   const navigate = useNavigate()
   const timeOfDay = getTimeOfDay()
@@ -170,24 +169,24 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
 
         .layout-container {
           min-height: 100vh;
-          background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080"><rect fill="%23000814"/><circle cx="200" cy="200" r="1" fill="%23ffffff" opacity="0.3"/><circle cx="800" cy="400" r="1" fill="%23ffffff" opacity="0.4"/><circle cx="1200" cy="150" r="1" fill="%23ffffff" opacity="0.3"/><circle cx="400" cy="600" r="1" fill="%23ffffff" opacity="0.5"/><circle cx="1600" cy="700" r="1" fill="%23ffffff" opacity="0.3"/><circle cx="900" cy="900" r="1" fill="%23ffffff" opacity="0.4"/></svg>') center/cover fixed;
+          background: url('/images/spacebg.gif') center/cover fixed;
           padding: 20px;
         }
 
         .game-wrapper {
           max-width: 1200px;
           margin: 0 auto;
-          background: rgba(6, 24, 41, 0.95);
-          border: 2px solid #1e4d7a;
+          background: rgba(6, 24, 41, 0.25); /* Layer 1: Most transparent */
+          border: 2px solid rgba(30, 77, 122, 0.4);
           border-radius: 8px;
           overflow: hidden;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.9);
         }
 
         /* Top Header */
         .top-header {
-          background: linear-gradient(180deg, #0a2540 0%, #061829 100%);
-          border-bottom: 2px solid #1e4d7a;
+          background: linear-gradient(180deg, rgba(10, 37, 64, 0.5) 0%, rgba(6, 24, 41, 0.5) 100%); /* Layer 2: Medium transparency */
+          border-bottom: 2px solid rgba(30, 77, 122, 0.5);
           padding: 10px 20px;
         }
 
@@ -224,8 +223,8 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
         }
 
         .info-badge {
-          background: rgba(30, 77, 122, 0.6);
-          border: 1px solid #1e4d7a;
+          background: rgba(30, 77, 122, 0.75); /* Layer 3: Least transparent */
+          border: 1px solid rgba(30, 77, 122, 0.8);
           padding: 5px 12px;
           border-radius: 3px;
           font-size: 0.8rem;
@@ -244,8 +243,8 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
 
         /* Resources Bar */
         .resources-bar {
-          background: linear-gradient(180deg, #0d1b2a 0%, #071018 100%);
-          border-bottom: 1px solid #1e4d7a;
+          background: linear-gradient(180deg, rgba(13, 27, 42, 0.5) 0%, rgba(7, 16, 24, 0.5) 100%); /* Layer 2: Medium transparency */
+          border-bottom: 1px solid rgba(30, 77, 122, 0.5);
           padding: 10px 20px;
         }
 
@@ -260,8 +259,8 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
           display: flex;
           gap: 8px;
           align-items: center;
-          background: rgba(10, 37, 64, 0.6);
-          border: 1px solid #1e4d7a;
+          background: rgba(10, 37, 64, 0.75); /* Layer 3: Least transparent */
+          border: 1px solid rgba(30, 77, 122, 0.8);
           border-radius: 4px;
           padding: 6px 10px;
           position: relative;
@@ -339,8 +338,8 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
 
         /* Main Navigation */
         .main-nav {
-          background: linear-gradient(180deg, #0a2540 0%, #061829 100%);
-          border-bottom: 2px solid #1e4d7a;
+          background: linear-gradient(180deg, rgba(10, 37, 64, 0.5) 0%, rgba(6, 24, 41, 0.5) 0.2%); /* Layer 2: Medium transparency */
+          border-bottom: 2px solid rgba(30, 77, 122, 0.5);
         }
 
         .primary-nav {
@@ -352,9 +351,9 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
         }
 
         .nav-item {
-          background: linear-gradient(180deg, #0d3a5f 0%, #0a2540 100%);
-          border-right: 1px solid #1e4d7a;
-          border-left: 1px solid #0a2540;
+          background: linear-gradient(180deg, rgba(13, 58, 95, 0.75) 0%, rgba(10, 37, 64, 0.75) 0%); /* Layer 3: Least transparent */
+          border-right: 1px solid rgba(30, 77, 122, 0.8);
+          border-left: 1px solid rgba(10, 37, 64, 0.8);
           color: #6ba3bf;
           text-decoration: none;
           padding: 10px 16px;
@@ -370,12 +369,12 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
         }
 
         .nav-item:hover {
-          background: linear-gradient(180deg, #1e4d7a 0%, #0d3a5f 100%);
+          background: linear-gradient(180deg, rgba(30, 77, 122, 0.85) 0%, rgba(13, 58, 95, 0.85) 100%);
           color: #fff;
         }
 
         .nav-item.active {
-          background: linear-gradient(180deg, #2d5a7a 0%, #1e4d7a 100%);
+          background: linear-gradient(180deg, rgba(45, 90, 122, 0.9) 0%, rgba(30, 77, 122, 0.9) 100%);
           color: #fff;
           border-bottom: 3px solid #4a9eff;
         }
@@ -388,6 +387,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
         .main-content {
           padding: 20px;
           min-height: 400px;
+          background: rgba(10, 37, 64, 0.2); 
         }
 
         .loading {
@@ -501,16 +501,37 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
           {/* Main Navigation */}
           <div className="main-nav">
             <div className="primary-nav">
-              {navItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
-                >
-                  <span className="nav-icon">{item.icon}</span>
-                  <span>{item.name}</span>
-                </Link>
-              ))}
+              {navItems.map((item) => {
+                // Block navigation to Shops and Casino if traveling
+                const isBlocked =
+                  isTraveling &&
+                  (item.path === '/shops' || item.path === '/casino')
+                return isBlocked ? (
+                  <span
+                    key={item.path}
+                    className="nav-item nav-item--disabled"
+                    style={{
+                      opacity: 0.5,
+                      pointerEvents: 'none',
+                      cursor: 'not-allowed',
+                    }}
+                  >
+                    <span className="nav-icon">{item.icon}</span>
+                    <span>{item.name}</span>
+                  </span>
+                ) : (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`nav-item ${
+                      isActive(item.path) ? 'active' : ''
+                    }`}
+                  >
+                    <span className="nav-icon">{item.icon}</span>
+                    <span>{item.name}</span>
+                  </Link>
+                )
+              })}
             </div>
           </div>
 

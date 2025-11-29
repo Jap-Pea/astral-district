@@ -24,7 +24,7 @@ Build your criminal empire from the ground up. Commit crimes, manage resources, 
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone https://github.com/Jap-Pea/astral-district
 
 # Install dependencies
 npm install

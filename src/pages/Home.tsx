@@ -114,8 +114,8 @@ const Home = () => {
   // Get user's ship or default
   const userShip: import('../types/user.types').Ship =
     (user.ship as import('../types/user.types').Ship) || {
-      id: 'no_ship',
-      name: 'No Ship',
+      id: 'shipFace',
+      name: 'Ship McShipface',
       tier: 'basic',
       modelPath: '',
       price: 0,
@@ -127,7 +127,7 @@ const Home = () => {
       cargo: [],
       fuelTypes: ['ion'],
       travelTimeReduction: 0,
-      description: 'No ship assigned.',
+      description: 'The shippiest ship.',
     }
 
   // Get active missions from user
@@ -344,13 +344,22 @@ const Home = () => {
             </div>
           </div>
 
-          <button
-            className="edit-profile-btn"
-            onClick={handleImageClick}
-            disabled={uploadingImage}
+          <div
+            style={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              margin: '1rem 0',
+            }}
           >
-            {uploadingImage ? '⏳ Uploading...' : 'Edit Profile Pic'}
-          </button>
+            <button
+              className="edit-profile-btn"
+              onClick={handleImageClick}
+              disabled={uploadingImage}
+            >
+              {uploadingImage ? '⏳ Uploading...' : 'Edit Profile Pic'}
+            </button>
+          </div>
 
           <div className="cc-left-stack">
             <StatCard
@@ -504,7 +513,7 @@ const Home = () => {
                   size="md"
                   onClick={() => navigate('/shipyard')}
                 >
-                  🚀 Shipyard
+                  Shipyard
                 </GradientButton>
               </div>
 
@@ -571,7 +580,9 @@ const Home = () => {
               onClick={() => navigate('/casino')}
               className="nav-card"
             >
-              <div style={styles.navIcon}>🎰</div>
+              <div style={styles.navIcon}>
+                <img src="images/icons/casino.png"></img>{' '}
+              </div>
               <div style={styles.navLabel}>Casino</div>
             </GlassCard>
             <GlassCard
@@ -579,7 +590,9 @@ const Home = () => {
               onClick={() => navigate('/gym')}
               className="nav-card"
             >
-              <div style={styles.navIcon}>🏋️</div>
+              <div style={styles.navIcon}>
+                <img src="images/icons/gym.png"></img>
+              </div>
               <div style={styles.navLabel}>Gym</div>
             </GlassCard>
             <GlassCard
@@ -587,7 +600,9 @@ const Home = () => {
               onClick={() => navigate('/stargate')}
               className="nav-card"
             >
-              <div style={styles.navIcon}>🌌</div>
+              <div style={styles.navIcon}>
+                <img src="images/icons/black-hole.png"></img>
+              </div>
               <div style={styles.navLabel}>StarGate</div>
             </GlassCard>
             <GlassCard
@@ -595,7 +610,9 @@ const Home = () => {
               onClick={() => navigate('/shops')}
               className="nav-card"
             >
-              <div style={styles.navIcon}>🏪</div>
+              <div style={styles.navIcon}>
+                <img src="images/icons/shop.png"></img>
+              </div>
               <div style={styles.navLabel}>Shops</div>
             </GlassCard>
             <GlassCard
@@ -1389,11 +1406,13 @@ const cssString = `
   gap: 1.25rem;
   align-items: start;
   width: 100%;
+  background: rgba(10, 37, 64, 0); 
 }
 
 @media (max-width: 980px) {
   .cc-grid {
     grid-template-columns: 1fr;
+    background: rgba(10, 37, 64, 0); 
   }
   .cc-left {
     order: 1;
@@ -1431,7 +1450,7 @@ const cssString = `
 .cc-mini-btn {
   background: transparent;
   color: inherit;
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
   padding: 0.5rem 0.6rem;
   border-radius: 8px;
   cursor: pointer;
@@ -1496,7 +1515,7 @@ const cssString = `
   display: flex;
   text-transform: uppercase;
   font-family: 'Open Sans Pro', sans-serif;
-  font-size: 5.6rem;
+  font-size: 3.5rem;
   font-weight: 900;
   align-items: center;
   line-height: 0.85em;
@@ -1598,7 +1617,7 @@ const cssString = `
 .mist {
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle, rgba(131, 255, 158, 0.63) 10%, rgba(255, 255, 255, 0) 50%);
+  background: radial-gradient(circle, rgba(196, 3, 3, 0.63) 10%, rgba(255, 255, 255, 0) 50%);
   animation: mist 10s infinite both;
 }
 
@@ -1635,8 +1654,8 @@ const cssString = `
 
 .edit-profile-btn {
   position: absolute;
-  bottom: -20px;
-  left: 50%;
+  bottom: 200px;
+  left: 25%;
   transform: translateX(-50%);
   padding: 0.6rem 1.2rem;
   background: linear-gradient(135deg, #124926, #165c30);
