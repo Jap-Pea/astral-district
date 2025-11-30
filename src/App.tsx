@@ -21,7 +21,6 @@ import Profile from './pages/Profile'
 import Jail from './pages/Jail'
 import Hospital from './pages/Hospital'
 import NotFound from './pages/NotFound'
-import Properties from './pages/Properties'
 import Casino from './pages/Casino'
 import Shops from './pages/Shops'
 import StarGate from './pages/StarGate'
@@ -54,7 +53,6 @@ function AppContent() {
           <Route path="/jail" element={<Jail />} />
           <Route path="/hospital" element={<Hospital />} />
           <Route path="*" element={<NotFound />} />
-          <Route path="/properties" element={<Properties />} />
           <Route path="/casino" element={<Casino />} />
           <Route path="/shops" element={<Shops />} />
           <Route path="/starGate" element={<StarGate />} />

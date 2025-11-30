@@ -14,27 +14,11 @@
  *   - Defense: 1
  *   - Speed: 1
  *   - Dexterity: 1
- *
- * LEVEL-UP PROGRESSION:
- * - Each level increases: maxHealth (+50), Strength (+1), Defense (+1), Speed (+1), Dexterity (+1)
- * - Energy cap does NOT increase with levels
- * - EXP to next level scales by 1.5x (1000 -> 1500 -> 2250, etc.)
- *
- * DEV FAST TICKS:
- * - When enabled, all stat timers run at 5s intervals instead of normal rates
- * - Normal: Energy 10min, Health 1min, HeartRate/Heat 5min
- * - Dev: Energy 5s, Health 5s, HeartRate/Heat 5s
- *
- * FUTURE FEATURES:
- * - Gym training: 10 energy cost per train, stat gains scale with training count (1.023 multiplier per train)
- * - Items can boost stats (to be implemented)
- * - Memberships provide gym stat multipliers (to be implemented)
  */
 import { useState, useEffect, useCallback } from 'react'
 import type { ReactNode } from 'react'
 import type { User } from '../types/user.types'
 import type { UserContextType } from './userCore'
-import { mockUser } from '../services/mockData/users'
 import {
   computeInjuryDecision,
   computeArrestDecision,
@@ -61,15 +45,23 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   const toggleDevSpeed = useCallback(() => setDevFastTicks((v) => !v), [])
   const toggleDevPanel = useCallback(() => setDevPanelOpen((v) => !v), [])
 
-  // Initialize user on mount
+  // Initialize user on mount - CHANGED: Don't create a default user if none exists
   useEffect(() => {
     const loadUser = async () => {
-      const saved = localStorage.getItem('astralUser')
-      if (saved) {
-        setUser(JSON.parse(saved))
-      } else {
-        await new Promise((resolve) => setTimeout(resolve, 500))
-        setUser(mockUser)
+      try {
+        const saved = localStorage.getItem('astralUser')
+        if (saved) {
+          const parsedUser = JSON.parse(saved)
+          setUser(parsedUser)
+          console.log('✅ Loaded existing user:', parsedUser.username)
+        } else {
+          // No saved user - let NewPlayerGate handle character creation
+          console.log('ℹ️ No saved user found - showing character creation')
+          setUser(null)
+        }
+      } catch (error) {
+        console.error('❌ Error loading user:', error)
+        setUser(null)
       }
       setIsLoading(false)
     }
@@ -82,6 +74,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       localStorage.setItem('astralUser', JSON.stringify(user))
     }
   }, [user])
+
   // Auto-regenerate energy over time (5 energy every 10 minutes)
   useEffect(() => {
     if (!user) return
@@ -206,7 +199,12 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   const updateUser = useCallback(
     (updates: Partial<User>) => {
       setUser((prev) => {
-        if (!prev) return prev
+        if (!prev) {
+          // If there's no previous user, create a new one with the updates
+          // This allows NewPlayerGate to initialize a new user
+          return updates as User
+        }
+
         // Merge updates, then enforce global caps and sane ranges
         const merged: User = {
           ...prev,
@@ -274,36 +272,17 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     updateUser({ energy: newEnergy })
   }
 
-  // Dev: reset user to the mock starter player
+  // Dev: reset user completely and clear localStorage
   const resetToBeginner = useCallback(() => {
-    const beginnerUser: User = {
-      ...mockUser,
-      health: 500,
-      maxHealth: 500,
-      energy: 100,
-      maxEnergy: 100,
-      heartRate: 50,
-      maxHeartRate: 180,
-      heat: 0,
-      maxHeat: 100,
-      money: 0,
-      level: 0,
-      experience: 0,
-      experienceToNext: 1000,
-      stats: {
-        strength: 1,
-        defense: 1,
-        speed: 1,
-        dexterity: 1,
-      },
-      inventory: [],
-    }
-    setUser(beginnerUser)
+    localStorage.removeItem('astralUser')
+    localStorage.removeItem('suss-life_v1_state')
+    setUser(null)
     setIsInHospital(false)
     setIsInJail(false)
     setJailTimeRemaining(0)
     setHospitalTimeRemaining(0)
     setHealthLastTick(Date.now())
+    console.log('🗑️ User data cleared - reload page to start fresh')
   }, [
     setIsInHospital,
     setIsInJail,
@@ -369,8 +348,6 @@ export const UserProvider = ({ children }: UserProviderProps) => {
 
     const heartRate = currentHeartRate ?? user.heartRate
     if (heartRate <= 150) return { injured: false, damage: 0 }
-    // Use module-scoped helper to compute injury decision (keeps Math.random out of
-    // the render body and avoids React purity warnings)
     const decision = computeInjuryDecision(heartRate, user.maxHealth)
     console.log('Injury check - HR:', heartRate, 'Decision:', decision)
 
@@ -397,7 +374,6 @@ export const UserProvider = ({ children }: UserProviderProps) => {
 
     if (heat <= 75) return false
 
-    // Use helper to compute arrest decision
     const decision = computeArrestDecision(heat)
     console.log('Arrest decision:', decision)
 
@@ -439,7 +415,6 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     if (user.heartRate < heartRateCost) return false
 
     const escapeChance = 40
-    // Use helper to avoid Math.random calls inside component render
     const succeeded = computeEscapeRoll(escapeChance)
 
     if (succeeded) {
@@ -504,16 +479,13 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       newLevel++
       expToNext = Math.floor(expToNext * 1.5)
 
-      // Level up bonuses: increase combat stats and health, but NOT energy
-      // Combat stats increase by 1 per level (slow progression)
-      // Reduce per-level health increase to make progression less smooth
       const healthIncreasePerLevel = 25
       const levelUpBonus = {
         maxHealth: user.maxHealth + healthIncreasePerLevel,
         health: Math.min(
           user.health + healthIncreasePerLevel,
           user.maxHealth + healthIncreasePerLevel
-        ), // heal on level up
+        ),
         stats: {
           strength: user.stats.strength + 1,
           defense: user.stats.defense + 1,
@@ -544,14 +516,12 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     )
 
     if (existingItemIndex >= 0) {
-      // Item already exists, increase quantity
       if (item.stackable) {
         newInventory[existingItemIndex] = {
           ...newInventory[existingItemIndex],
           quantity: newInventory[existingItemIndex].quantity + quantity,
         }
       } else {
-        // Non-stackable items, add new entry
         newInventory.push({
           item,
           quantity,
@@ -560,7 +530,6 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         })
       }
     } else {
-      // New item
       newInventory.push({
         item,
         quantity,
@@ -589,10 +558,8 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     const existingItem = newInventory[existingItemIndex]
 
     if (existingItem.quantity <= quantity) {
-      // Remove item entirely
       newInventory.splice(existingItemIndex, 1)
     } else {
-      // Decrease quantity
       newInventory[existingItemIndex] = {
         ...existingItem,
         quantity: existingItem.quantity - quantity,
@@ -617,7 +584,6 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     const effects = invItem.item.effects
     if (!effects) return false
 
-    // Apply effects
     if (effects.healthRestore) {
       restoreHealth(effects.healthRestore)
     }
@@ -632,7 +598,6 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       updateUser({ heartRate: newHeartRate })
     }
 
-    // Remove one item from inventory
     removeItemFromInventory(itemId, 1)
     return true
   }
@@ -647,7 +612,6 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     if (invItem.equipped) return false
 
     const newInventory = user.inventory.map((inv) => {
-      // Unequip other items of the same type
       if (
         inv.item.type === invItem.item.type &&
         inv.item.id !== itemId &&
@@ -655,7 +619,6 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       ) {
         return { ...inv, equipped: false }
       }
-      // Equip this item
       if (inv.item.id === itemId) {
         return { ...inv, equipped: true }
       }
@@ -679,7 +642,6 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     updateUser({ inventory: newInventory })
     return true
   }
-  // FUEL MANAGEMENT FUNCTIONS - Add after unequipItem function:
 
   const getFuelCount = useCallback(
     (fuelType: 'ion' | 'fusion' | 'quantum'): number => {
@@ -732,7 +694,6 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   )
 
   const [isTraveling, setIsTraveling] = useState(false)
-
   const [travelTimeRemaining, setTravelTimeRemaining] = useState(0)
 
   const value: UserContextType = {
@@ -766,7 +727,6 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     useFuel,
     travelTimeRemaining,
     setTravelTimeRemaining,
-    // dev controls
     resetToBeginner,
     scaleAllStats,
     devFastTicks,
@@ -781,10 +741,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     isLoading,
   }
 
-  // Attach in an effect so we don't modify globals during render.
   useEffect(() => {
-    // Consider this dev when served from localhost (common for Vite). Avoid using
-    // import.meta here to keep the code type-clean for environments where it's not typed.
     const isDev =
       typeof window !== 'undefined' &&
       (window.location.hostname === 'localhost' ||
@@ -827,7 +784,3 @@ export const UserProvider = ({ children }: UserProviderProps) => {
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>
 }
-
-// Note: the `useUser` hook is exported from `src/hooks/useUser.ts` to keep
-// this file focused on the provider implementation and satisfy fast-refresh
-// constraints.

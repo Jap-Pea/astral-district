@@ -12,7 +12,7 @@ interface CityLocation {
   description: string
   route: string
   comingSoon?: boolean
-  mapPosition?: { x: number; y: number }
+  mapPosition?: { x: number; y: number } // now in px
 }
 
 const City = () => {
@@ -26,7 +26,7 @@ const City = () => {
       icon: '🏠',
       description: 'Buy and manage properties',
       route: '/properties',
-      mapPosition: { x: 24.5, y: 44 },
+      mapPosition: { x: 120, y: 220 },
     },
     {
       id: 'gym',
@@ -40,7 +40,7 @@ const City = () => {
       ),
       description: 'Purchase memberships and train',
       route: '/gym',
-      mapPosition: { x: 60, y: 25 },
+      mapPosition: { x: 300, y: 125 },
     },
     {
       id: 'shops',
@@ -55,22 +55,22 @@ const City = () => {
       description: 'Buy and sell items',
       route: '/shops',
       comingSoon: false,
-      mapPosition: { x: 39, y: 58 },
+      mapPosition: { x: 195, y: 290 },
     },
     {
-      id: 'airport',
-      name: 'Airport',
+      id: 'stargate',
+      name: 'Star Gate',
       icon: (
         <img
-          src="/images/icons/airport.png"
+          src="/images/icons/black-hole.png"
           alt="airport"
           style={{ width: 36, height: 36 }}
         />
       ),
-      description: 'Travel to other countries',
-      route: '/airport',
+      description: 'Space Travel',
+      route: '/stargate',
       comingSoon: false,
-      mapPosition: { x: 16, y: 15 },
+      mapPosition: { x: 80, y: 150 },
     },
     {
       id: 'dealership',
@@ -79,7 +79,7 @@ const City = () => {
       description: 'Buy cars and vehicles',
       route: '/dealership',
       comingSoon: true,
-      mapPosition: { x: 70, y: 45 },
+      mapPosition: { x: 350, y: 225 },
     },
     {
       id: 'jail',
@@ -93,7 +93,7 @@ const City = () => {
       ),
       description: 'Bail out friends',
       route: '/jail',
-      mapPosition: { x: 75, y: 30 },
+      mapPosition: { x: 375, y: 150 },
     },
     {
       id: 'hospital',
@@ -107,7 +107,7 @@ const City = () => {
       ),
       description: 'Medical services',
       route: '/hospital',
-      mapPosition: { x: 46, y: 57 },
+      mapPosition: { x: 230, y: 285 },
     },
     {
       id: 'bank',
@@ -122,7 +122,7 @@ const City = () => {
       description: 'Deposits and investments',
       route: '/bank',
       comingSoon: true,
-      mapPosition: { x: 35, y: 20 },
+      mapPosition: { x: 175, y: 100 },
     },
     {
       id: 'loanshark',
@@ -131,7 +131,7 @@ const City = () => {
       description: 'Quick cash with high interest',
       route: '/loanshark',
       comingSoon: true,
-      mapPosition: { x: 25, y: 75 },
+      mapPosition: { x: 125, y: 375 },
     },
     {
       id: 'blackmarket',
@@ -140,7 +140,7 @@ const City = () => {
       description: 'Illegal goods and services',
       route: '/blackmarket',
       comingSoon: true,
-      mapPosition: { x: 10, y: 50 },
+      mapPosition: { x: 50, y: 250 },
     },
     {
       id: 'casino',
@@ -155,7 +155,7 @@ const City = () => {
       description: 'Test your luck',
       route: '/casino',
       comingSoon: false,
-      mapPosition: { x: 68.5, y: 42 },
+      mapPosition: { x: 342, y: 210 },
     },
     {
       id: 'nightclub',
@@ -164,7 +164,7 @@ const City = () => {
       description: 'Socialize and network',
       route: '/nightclub',
       comingSoon: true,
-      mapPosition: { x: 65, y: 55 },
+      mapPosition: { x: 325, y: 275 },
     },
   ]
 
@@ -249,7 +249,7 @@ const City = () => {
           style={{
             position: 'relative',
             width: '100%',
-            height: '600px',
+            height: '500px',
             borderRadius: '12px',
             border: '2px solid #333',
             overflow: 'hidden',
@@ -344,8 +344,8 @@ const MapPin = ({
       onMouseLeave={() => setIsHovered(false)}
       style={{
         position: 'absolute',
-        left: `${location.mapPosition!.x}%`,
-        top: `${location.mapPosition!.y}%`,
+        left: `${location.mapPosition!.x}px`,
+        top: `${location.mapPosition!.y}px`,
         transform: 'translate(-50%, -50%)',
         cursor: 'pointer',
         transition: 'all 0.2s',

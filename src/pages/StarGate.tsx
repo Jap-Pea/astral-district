@@ -425,7 +425,7 @@ const StarGate = () => {
 
         <div style={styles.statsBar}>
           <div style={styles.statItem}>
-            <span style={{ color: '#888' }}>CREDITS:</span>
+            <span style={{ color: '#888' }}>CHIPS:</span>
             <span
               style={{
                 color: '#22c55e',

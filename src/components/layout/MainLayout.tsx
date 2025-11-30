@@ -79,9 +79,13 @@ const navItems = [
   {
     name: 'Home',
     path: '/',
-    icon: <img src="images/icons/home.png" alt="Home" />,
+    icon: <img src="images/icons/astronaut.png" alt="Home" />,
   },
-  { name: 'Crimes', path: '/crimes', icon: '🔫' },
+  {
+    name: 'Crimes',
+    path: '/crimes',
+    icon: <img src="images/icons/crime.png" alt="Crimes" />,
+  },
   {
     name: 'Gym',
     path: '/gym',
@@ -471,28 +475,30 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
                   current={user.health}
                   max={user.maxHealth}
                   color="#38bdf8"
-                  icon="❤️"
+                  icon={<img src="images/icons/health.png" alt="Health" />}
                 />
                 <StatBar
                   label="Energy"
                   current={user.energy}
                   max={user.maxEnergy}
                   color="#22c55e"
-                  icon="⚡"
+                  icon={<img src="images/icons/energy.png" alt="Energy" />}
                 />
                 <StatBar
                   label="Heartrate"
                   current={user.heartRate}
                   max={user.maxHeartRate}
                   color="#fbbf24"
-                  icon="💓"
+                  icon={
+                    <img src="images/icons/heartbeat.png" alt="Heart Rate" />
+                  }
                 />
                 <StatBar
                   label="Heat"
                   current={user.heat}
                   max={user.maxHeat}
                   color="#ef4444"
-                  icon="🔥"
+                  icon={<img src="images/icons/policeHeat.png" alt="Heat" />}
                 />
               </div>
             </div>

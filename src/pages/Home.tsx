@@ -371,7 +371,7 @@ const Home = () => {
             <StatCard
               label="Chips"
               value={`$${user.money.toLocaleString()}`}
-              icon="💰"
+              icon={<img src="images/icons/dollar.png" alt="Chips" />}
               color="green"
             />
             <StatCard
@@ -572,7 +572,9 @@ const Home = () => {
               onClick={() => navigate('/crimes')}
               className="nav-card"
             >
-              <div style={styles.navIcon}>🔫</div>
+              <div style={styles.navIcon}>
+                <img src="images/icons/crime.png" alt="Crimes" />
+              </div>
               <div style={styles.navLabel}>Crimes</div>
             </GlassCard>
             <GlassCard
@@ -647,7 +649,9 @@ const Home = () => {
           <GlassCard>
             <div style={styles.activityFeed}>
               <div style={styles.activityItem}>
-                <span style={styles.activityIcon}>💰</span>
+                <span style={styles.activityIcon}>
+                  <img src="images/icons/dollar.png" alt="Chips" />
+                </span>
                 <div style={styles.activityText}>
                   <div style={styles.activityTitle}>Crime Success</div>
                   <div style={styles.activityDesc}>
