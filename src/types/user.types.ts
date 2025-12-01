@@ -1,8 +1,13 @@
 import type { InventoryItem, Item } from './item.types'
 
+export type Gender = 'male' | 'female'
+export type Race = 'human' | 'gleek' | 'ortanz'
+
 export interface User {
   id: string
   username: string
+  gender?: Gender
+  race?: Race
   level: number
   experience: number
   experienceToNext: number

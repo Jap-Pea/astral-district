@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react'
 
 export type RaceKey = 'human' | 'gleek' | 'ortanz'
+export type GenderKey = 'male' | 'female'
 
 export type NewPlayerResult = {
   username: string
   race: RaceKey
+  gender: GenderKey
   perks: Record<string, number>
   profilePic?: string
 }
 
-// Loading screens with animated messages
 const LOADING_SCREENS = [
   {
     title: 'Initializing Neural Interface...',
@@ -48,6 +49,7 @@ export default function NewPlayerSetup({
   const [loadingIndex, setLoadingIndex] = useState(0)
   const [username, setUsername] = useState(initialUsername)
   const [race, setRace] = useState<RaceKey | null>(null)
+  const [gender, setGender] = useState<GenderKey | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [hoveredRace, setHoveredRace] = useState<RaceKey | null>(null)
 
@@ -57,6 +59,27 @@ export default function NewPlayerSetup({
     defense: 1,
     dexterity: 1,
     speed: 1,
+  }
+
+  // Race image paths - Update these with your actual image paths later
+  const getRaceImage = (race: RaceKey, gender: GenderKey): string => {
+    const imagePaths = {
+      human: {
+        male: '/images/races/human-male.png',
+        female: '/images/races/human-female.png',
+      },
+      gleek: {
+        male: '/images/races/gleekMale.png', 
+        female: '/images/races/gleekFemale.png',
+      },
+      ortanz: {
+        male: '/images/races/ortanz-male.png',
+        female: '/images/races/ortanz-female.png',
+      },
+    }
+
+    // Placeholder fallback - replace with your images
+    return imagePaths[race][gender] || `https://placehold.co/300x400/333/fff?text=${race}+${gender}`
   }
 
   const RACES: Record<
@@ -128,10 +151,6 @@ export default function NewPlayerSetup({
     return () => clearInterval(interval)
   }, [stage])
 
-  useEffect(() => {
-    setError(null)
-  }, [username, race])
-
   function validate() {
     if (!username || username.trim().length < 2) {
       setError('Please enter a name (2+ characters)')
@@ -139,6 +158,10 @@ export default function NewPlayerSetup({
     }
     if (username.trim().length > 20) {
       setError('Name must be 20 characters or less')
+      return false
+    }
+    if (!gender) {
+      setError('Select a gender to continue')
       return false
     }
     if (!race) {
@@ -150,15 +173,16 @@ export default function NewPlayerSetup({
 
   function handleSubmit(e?: React.FormEvent) {
     e?.preventDefault()
-    if (!validate() || !race) return
+    if (!validate() || !race || !gender) return
 
     const perks = RACES[race].perks(BASE_STATS)
 
     const result: NewPlayerResult = {
       username: username.trim(),
       race,
+      gender,
       perks,
-      profilePic: undefined, // Can be customized later
+      profilePic: getRaceImage(race, gender),
     }
 
     onComplete(result)
@@ -280,10 +304,6 @@ export default function NewPlayerSetup({
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.1); }
           }
-          @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-          }
           @keyframes slideIn {
             from { transform: translateX(-20px); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
@@ -332,9 +352,7 @@ export default function NewPlayerSetup({
               style={{
                 height: '100%',
                 background: 'white',
-                width: `${
-                  ((loadingIndex + 1) / LOADING_SCREENS.length) * 100
-                }%`,
+                width: `${((loadingIndex + 1) / LOADING_SCREENS.length) * 100}%`,
                 transition: 'width 0.5s ease-out',
                 boxShadow: '0 0 10px rgba(255,255,255,0.5)',
               }}
@@ -407,13 +425,11 @@ export default function NewPlayerSetup({
             }}
             onMouseOver={(e) => {
               e.currentTarget.style.transform = 'translateY(-3px)'
-              e.currentTarget.style.boxShadow =
-                '0 12px 40px rgba(139, 92, 246, 0.6)'
+              e.currentTarget.style.boxShadow = '0 12px 40px rgba(139, 92, 246, 0.6)'
             }}
             onMouseOut={(e) => {
               e.currentTarget.style.transform = 'translateY(0)'
-              e.currentTarget.style.boxShadow =
-                '0 8px 30px rgba(139, 92, 246, 0.4)'
+              e.currentTarget.style.boxShadow = '0 8px 30px rgba(139, 92, 246, 0.4)'
             }}
           >
             Create Character →
@@ -452,6 +468,12 @@ export default function NewPlayerSetup({
         .race-card:hover {
           transform: translateY(-5px);
         }
+        .gender-btn {
+          transition: all 0.3s ease;
+        }
+        .gender-btn:hover {
+          transform: scale(1.05);
+        }
         input:focus {
           outline: none;
         }
@@ -459,7 +481,7 @@ export default function NewPlayerSetup({
 
       <div
         style={{
-          maxWidth: '900px',
+          maxWidth: '1000px',
           width: '100%',
           background: 'rgba(10, 37, 64, 0.85)',
           backdropFilter: 'blur(20px)',
@@ -513,19 +535,71 @@ export default function NewPlayerSetup({
                 transition: 'all 0.3s ease',
               }}
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(e) => {
+                setUsername(e.target.value)
+                if (error) setError(null)
+              }}
               placeholder="Enter your character name..."
               autoFocus
               onFocus={(e) => {
                 e.currentTarget.style.borderColor = '#4a9eff'
-                e.currentTarget.style.boxShadow =
-                  '0 0 20px rgba(74, 158, 255, 0.3)'
+                e.currentTarget.style.boxShadow = '0 0 20px rgba(74, 158, 255, 0.3)'
               }}
               onBlur={(e) => {
                 e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)'
                 e.currentTarget.style.boxShadow = 'none'
               }}
             />
+          </div>
+
+          {/* Gender Selection */}
+          <div style={{ marginBottom: '2rem' }}>
+            <label
+              style={{
+                display: 'block',
+                fontSize: '0.9rem',
+                fontWeight: '600',
+                marginBottom: '0.75rem',
+                color: '#6ba3bf',
+              }}
+            >
+              ⚧ Select Gender
+            </label>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              {(['male', 'female'] as GenderKey[]).map((g) => {
+                const active = gender === g
+                return (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => {
+                      setGender(g)
+                      if (error) setError(null)
+                    }}
+                    className="gender-btn"
+                    style={{
+                      flex: 1,
+                      padding: '1.25rem',
+                      borderRadius: '12px',
+                      border: active
+                        ? '2px solid #4a9eff'
+                        : '2px solid rgba(255, 255, 255, 0.1)',
+                      background: active
+                        ? 'linear-gradient(135deg, rgba(74, 158, 255, 0.2), rgba(74, 158, 255, 0.1))'
+                        : 'rgba(255, 255, 255, 0.03)',
+                      color: active ? '#4a9eff' : '#6ba3bf',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '1.1rem',
+                      textTransform: 'capitalize',
+                      boxShadow: active ? '0 8px 30px rgba(74, 158, 255, 0.3)' : 'none',
+                    }}
+                  >
+                    {g === 'male' ? '♂ Male' : '♀ Female'}
+                  </button>
+                )
+              })}
+            </div>
           </div>
 
           {/* Race Selection */}
@@ -544,7 +618,7 @@ export default function NewPlayerSetup({
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                gridTemplateColumns: 'repeat(3, 1fr)',
                 gap: '1rem',
               }}
             >
@@ -552,17 +626,21 @@ export default function NewPlayerSetup({
                 const meta = RACES[r]
                 const active = race === r
                 const hovered = hoveredRace === r
+                const canShowImage = gender !== null
 
                 return (
                   <button
                     key={r}
                     type="button"
-                    onClick={() => setRace(r)}
+                    onClick={() => {
+                      setRace(r)
+                      if (error) setError(null)
+                    }}
                     onMouseEnter={() => setHoveredRace(r)}
                     onMouseLeave={() => setHoveredRace(null)}
                     className="race-card"
                     style={{
-                      padding: '1.5rem',
+                      padding: '0',
                       textAlign: 'left',
                       background: active
                         ? `linear-gradient(135deg, ${meta.color}40, ${meta.color}20)`
@@ -571,62 +649,106 @@ export default function NewPlayerSetup({
                         ? `2px solid ${meta.color}`
                         : '2px solid rgba(255, 255, 255, 0.1)',
                       borderRadius: '12px',
-                      cursor: 'pointer',
+                      cursor: canShowImage ? 'pointer' : 'not-allowed',
                       boxShadow: active
                         ? `0 8px 30px ${meta.color}40`
                         : hovered
                         ? '0 8px 20px rgba(0, 0, 0, 0.5)'
                         : 'none',
+                      overflow: 'hidden',
+                      opacity: canShowImage ? 1 : 0.5,
                     }}
+                    disabled={!canShowImage}
                   >
-                    <div
-                      style={{
-                        fontSize: '3rem',
-                        marginBottom: '0.75rem',
-                        filter: active ? 'none' : 'grayscale(0.5)',
-                      }}
-                    >
-                      {meta.icon}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: '1.5rem',
-                        fontWeight: 'bold',
-                        color: active ? meta.color : '#fff',
-                        marginBottom: '0.5rem',
-                      }}
-                    >
-                      {meta.label}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: '0.9rem',
-                        color: '#6ba3bf',
-                        marginBottom: '0.75rem',
-                      }}
-                    >
-                      {meta.description}
-                    </div>
-                    {(active || hovered) && (
+                    {/* Race Image */}
+                    {canShowImage && gender && (
                       <div
                         style={{
-                          fontSize: '0.8rem',
-                          color: '#6ba3bf',
-                          fontStyle: 'italic',
-                          lineHeight: '1.5',
-                          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-                          paddingTop: '0.75rem',
-                          marginTop: '0.75rem',
-                          animation: 'slideIn 0.3s ease-out',
+                          width: '100%',
+                          height: '250px',
+                          overflow: 'hidden',
+                          background: 'rgba(0, 0, 0, 0.3)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                         }}
                       >
-                        {meta.lore}
+                        <img
+                          src={getRaceImage(r, gender)}
+                          alt={`${meta.label} ${gender}`}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'contain',
+                            filter: active ? 'none' : 'grayscale(0.3)',
+                          }}
+                        />
                       </div>
                     )}
+
+                    {/* Race Info */}
+                    <div style={{ padding: '1.5rem' }}>
+                      <div
+                        style={{
+                          fontSize: '2rem',
+                          marginBottom: '0.5rem',
+                        }}
+                      >
+                        {meta.icon}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '1.3rem',
+                          fontWeight: 'bold',
+                          color: active ? meta.color : '#fff',
+                          marginBottom: '0.5rem',
+                        }}
+                      >
+                        {meta.label}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '0.85rem',
+                          color: '#6ba3bf',
+                          marginBottom: '0.5rem',
+                        }}
+                      >
+                        {meta.description}
+                      </div>
+                      {(active || hovered) && (
+                        <div
+                          style={{
+                            fontSize: '0.75rem',
+                            color: '#6ba3bf',
+                            fontStyle: 'italic',
+                            lineHeight: '1.4',
+                            borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+                            paddingTop: '0.75rem',
+                            marginTop: '0.5rem',
+                            animation: 'slideIn 0.3s ease-out',
+                          }}
+                        >
+                          {meta.lore}
+                        </div>
+                      )}
+                    </div>
                   </button>
                 )
               })}
             </div>
+            {!gender && (
+              <div
+                style={{
+                  marginTop: '1rem',
+                  textAlign: 'center',
+                  color: '#6ba3bf',
+                  fontSize: '0.9rem',
+                  fontStyle: 'italic',
+                }}
+              >
+                💡 Select a gender first to see race images
+              </div>
+            )}
           </div>
 
           {/* Preview */}
@@ -664,6 +786,7 @@ export default function NewPlayerSetup({
               onClick={() => {
                 setUsername('')
                 setRace(null)
+                setGender(null)
                 setError(null)
               }}
               style={{
@@ -703,13 +826,11 @@ export default function NewPlayerSetup({
               }}
               onMouseOver={(e) => {
                 e.currentTarget.style.transform = 'translateY(-2px)'
-                e.currentTarget.style.boxShadow =
-                  '0 12px 40px rgba(34, 197, 94, 0.6)'
+                e.currentTarget.style.boxShadow = '0 12px 40px rgba(34, 197, 94, 0.6)'
               }}
               onMouseOut={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.boxShadow =
-                  '0 8px 30px rgba(34, 197, 94, 0.4)'
+                e.currentTarget.style.boxShadow = '0 8px 30px rgba(34, 197, 94, 0.4)'
               }}
             >
               🚀 Begin Journey

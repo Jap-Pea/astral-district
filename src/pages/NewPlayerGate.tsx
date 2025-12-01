@@ -93,7 +93,13 @@ export default function NewPlayerGate({
     updateUser({
       id: playerId,
       username: result.username,
-      profilePic: result.profilePic || '/images/default-avatar.png',
+      race: result.race,
+      gender: result.gender,
+      profilePic:
+        result.profilePic ||
+        (result.gender === 'male'
+          ? 'https://placehold.co/240x240?text=Male'
+          : 'https://placehold.co/240x240?text=Female'),
       profilePicOffset: { x: 0, y: 0 },
 
       level: 1,
