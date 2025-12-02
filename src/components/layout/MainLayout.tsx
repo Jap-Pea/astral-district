@@ -141,10 +141,14 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
     return () => clearInterval(id)
   }, [])
 
+  // Restrict access when jailed/hospitalized but allow Home and Items
   useEffect(() => {
-    if (isInJail && location.pathname !== '/jail') {
+    const jailWhitelist = ['/', '/inventory', '/jail']
+    const hospitalWhitelist = ['/', '/inventory', '/hospital']
+
+    if (isInJail && !jailWhitelist.includes(location.pathname)) {
       navigate('/jail', { replace: true })
-    } else if (isInHospital && location.pathname !== '/hospital') {
+    } else if (isInHospital && !hospitalWhitelist.includes(location.pathname)) {
       navigate('/hospital', { replace: true })
     }
   }, [isInJail, isInHospital, navigate, location.pathname])
@@ -509,9 +513,19 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
             <div className="primary-nav">
               {navItems.map((item) => {
                 // Block navigation to Shops and Casino if traveling
-                const isBlocked =
+                const travelingBlocked =
                   isTraveling &&
                   (item.path === '/shops' || item.path === '/casino')
+
+                // Additional gating: while in jail/hospital only allow Home + Items + own state page
+                const jailWhitelist = ['/', '/inventory', '/jail']
+                const hospitalWhitelist = ['/', '/inventory', '/hospital']
+                const jailBlocked = isInJail && !jailWhitelist.includes(item.path)
+                const hospitalBlocked =
+                  isInHospital && !hospitalWhitelist.includes(item.path)
+
+                const isBlocked = travelingBlocked || jailBlocked || hospitalBlocked
+
                 return isBlocked ? (
                   <span
                     key={item.path}

@@ -25,6 +25,7 @@ import Casino from './pages/Casino'
 import Shops from './pages/Shops'
 import StarGate from './pages/StarGate'
 import Shipyard from './pages/Shipyard'
+import LoanShark from './pages/LoanShark'
 
 function AppContent() {
   const {
@@ -57,6 +58,7 @@ function AppContent() {
           <Route path="/shops" element={<Shops />} />
           <Route path="/starGate" element={<StarGate />} />
           <Route path="/shipyard" element={<Shipyard />} />
+          <Route path="/loanShark" element={<LoanShark />} />
         </Routes>
       </MainLayout>
       <DevPanel

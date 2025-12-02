@@ -349,7 +349,8 @@ const Home = () => {
               width: '100%',
               display: 'flex',
               justifyContent: 'center',
-              margin: '1rem 0',
+              marginTop: '-1rem',
+              marginBottom: '0rem',
             }}
           >
             <button
@@ -1657,10 +1658,6 @@ const cssString = `
 }
 
 .edit-profile-btn {
-  position: absolute;
-  bottom: 200px;
-  left: 25%;
-  transform: translateX(-50%);
   padding: 0.6rem 1.2rem;
   background: linear-gradient(135deg, #124926, #165c30);
   color: #57ff95;
@@ -1671,18 +1668,17 @@ const cssString = `
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 0 1rem rgba(87, 255, 149, 0.3);
-  z-index: 20;
   white-space: nowrap;
 }
 
 .edit-profile-btn:hover:not(:disabled) {
   background: linear-gradient(135deg, #165c30, #1a7039);
   box-shadow: 0 0 1.5rem rgba(87, 255, 149, 0.5);
-  transform: translateX(-50%) translateY(-2px);
+  transform: translateY(-2px);
 }
 
 .edit-profile-btn:active:not(:disabled) {
-  transform: translateX(-50%) translateY(0);
+  transform: translateY(0);
 }
 
 .edit-profile-btn:disabled {

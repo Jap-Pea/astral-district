@@ -1,12 +1,31 @@
 // src/services/mockData/items.ts
 
 import type { Item, InventoryItem } from '../../types/item.types'
+import type { User } from '../../types/user.types'
 
 // Helper to find item by ID
 export const getItemById = (id: string): Item | undefined => {
   return mockItems.find((item) => item.id === id)
 }
+//Use item
+export function useItem(item: Item, user: User) {
+  // Apply basic consumable effects; extend as needed
+  const effects = item.effects
+  if (!effects) return
 
+  if (effects.healthRestore) {
+    user.health = Math.min(user.health + effects.healthRestore, user.maxHealth)
+  }
+  if (effects.energyRestore) {
+    user.energy = Math.min(user.energy + effects.energyRestore, user.maxEnergy)
+  }
+  if (effects.heartRateRestore) {
+    user.heartRate = Math.max(50, user.heartRate - effects.heartRateRestore)
+  }
+  if (effects.heatRestore) {
+    user.heat = Math.max(0, user.heat - effects.heatRestore)
+  }
+}
 // Helper to get items by type
 export const getItemsByType = (type: Item['type']): Item[] => {
   return mockItems.filter((item) => item.type === type)

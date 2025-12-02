@@ -117,8 +117,15 @@ const Crimes = () => {
       // Add rewards
       addMoney(crimeResult.moneyEarned)
       addExperience(crimeResult.experienceEarned)
-      const updatedUser = incrementCrime(user, 'success')
-      updateUser({ ...updatedUser }) // or updateUser({ ...updatedUser })
+      
+      // Only update crimesTally, don't spread entire user (would restore consumed energy)
+      updateUser({
+        crimesTally: {
+          ...user.crimesTally,
+          total: user.crimesTally.total + 1,
+          success: user.crimesTally.success + 1,
+        },
+      })
 
       // Increase heartRate and heat based on crime's heartRateCost
       const hrIncrease = crime.heartRateCost
@@ -139,27 +146,32 @@ const Crimes = () => {
       // Check risks with NEW values
       setTimeout(() => {
         const injuryCheck = checkInjuryRisk(newHeartRate)
+        const projectedHealth = Math.max(user.health - injuryCheck.damage, 0)
+
         if (injuryCheck.injured) {
           showModal({
-            title: 'Injury',
-            message: `⚠️ Your heart rate is dangerously high! You took ${injuryCheck.damage} damage!`,
-            type: 'warning',
-            icon: '⚠️',
+            title: projectedHealth <= 0 ? 'Heart Attack' : 'Injury',
+            message:
+              projectedHealth <= 0
+                ? '💀 Heart attack! Going to hospital...'
+                : `⚠️ Your heart rate is dangerously high! You took ${injuryCheck.damage} damage!`,
+            type: projectedHealth <= 0 ? 'error' : 'warning',
+            icon: projectedHealth <= 0 ? '💀' : '⚠️',
           })
-          if (user.health - injuryCheck.damage <= 0) {
-            setTimeout(() => {
-              showModal({
-                title: 'Heart Attack',
-                message: '💀 Heart attack! Going to hospital...',
-                type: 'error',
-                icon: '💀',
-              })
-              // context.checkInjuryRisk already calls sendToHospital when appropriate;
-              // rely on the context flag + useEffect redirect instead of navigating here.
-            }, 1000)
+          if (projectedHealth <= 0 || projectedHealth < user.maxHealth * 0.15) {
+            // Severe injury / heart attack: send to hospital
+            sendToHospital(15)
             setIsCommitting(false)
             return
           }
+        } else if (newHeartRate >= user.maxHeartRate * 0.9) {
+          // High HR warning even if not injured this tick
+            showModal({
+              title: 'High Heart Rate',
+              message: '⚠️ Your heart rate is in the danger zone! Slow down or you may be injured.',
+              type: 'warning',
+              icon: '⚠️',
+            })
         }
 
         const arrested = checkArrestRisk(newHeat)
@@ -167,7 +179,7 @@ const Crimes = () => {
           setTimeout(() => {
             showModal({
               title: 'Arrested',
-              message: "🚔 The police caught you! You're going to jail.",
+              message: "The police caught you! You're going to jail.",
               type: 'error',
               icon: '🚔',
             })
@@ -188,10 +200,38 @@ const Crimes = () => {
       addExperience(crimeResult.experienceEarned)
 
       const newHeat = Math.min(user.heat + heatIncrease, user.maxHeat)
+      const newHeartRate = Math.min(user.heartRate + hrIncrease, user.maxHeartRate)
       console.log('Failed crime - New heat:', newHeat)
 
       // Failed crimes have MUCH higher arrest chance
       setTimeout(() => {
+        // Injury risk even on failure (reduced frequency but still present)
+        const injuryCheck = checkInjuryRisk(newHeartRate)
+        const projectedHealth = Math.max(user.health - injuryCheck.damage, 0)
+
+        if (injuryCheck.injured) {
+          showModal({
+            title: projectedHealth <= 0 ? 'Heart Attack' : 'Injury',
+            message:
+              projectedHealth <= 0
+                ? '💀 Heart attack! Going to hospital...'
+                : `⚠️ You pushed too hard while failing! You took ${injuryCheck.damage} damage!`,
+            type: projectedHealth <= 0 ? 'error' : 'warning',
+            icon: projectedHealth <= 0 ? '💀' : '⚠️',
+          })
+          if (projectedHealth <= 0 || projectedHealth < user.maxHealth * 0.15) {
+            sendToHospital(15)
+            setIsCommitting(false)
+            return
+          }
+        } else if (newHeartRate >= user.maxHeartRate * 0.9) {
+          showModal({
+            title: 'High Heart Rate',
+            message: '⚠️ Your heart rate is in the danger zone even on failure. Rest or risk injury.',
+            type: 'warning',
+            icon: '⚠️',
+          })
+        }
         const arrested = checkArrestRisk(newHeat)
         console.log('Failed crime arrest check result:', arrested)
         if (arrested) {

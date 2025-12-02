@@ -1,10 +1,10 @@
-import React from 'react'
+import React, { type ReactNode } from 'react'
 import { theme } from '../../styles/theme'
 
 interface StatCardProps {
   label: string
   value: string | number
-  icon?: string
+  icon?: ReactNode
   color?: keyof typeof theme.colors.accent
   tooltip?: string
 }

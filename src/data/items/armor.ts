@@ -1,3 +1,5 @@
+import type { Item } from '../../types/item.types'
+
 export const ARMOR: Item[] = [
   {
     id: 'armor_leather_jacket',
@@ -5,13 +7,13 @@ export const ARMOR: Item[] = [
     description: 'Basic protection. More style than substance.',
     type: 'armor',
     rarity: 'common',
-    value: 1000,
+    marketValue: 1000,
     stackable: false,
+    tradeable: true,
     usable: false,
-    equippable: true,
-    category: 'light',
-    effects: {
-      defenseBoost: 5,
+    stats: {
+      defense: 5,
+      requiredLevel: 1,
     },
   },
   {
@@ -20,16 +22,13 @@ export const ARMOR: Item[] = [
     description: 'Bulletproof protection. Standard for professionals.',
     type: 'armor',
     rarity: 'uncommon',
-    value: 8000,
+    marketValue: 8000,
     stackable: false,
+    tradeable: true,
     usable: false,
-    equippable: true,
-    category: 'medium',
-    effects: {
-      defenseBoost: 15,
-    },
-    requirements: {
-      level: 5,
+    stats: {
+      defense: 15,
+      requiredLevel: 5,
     },
   },
   {
@@ -38,17 +37,16 @@ export const ARMOR: Item[] = [
     description: 'Military-grade armor. Mobility and protection.',
     type: 'armor',
     rarity: 'rare',
-    value: 25000,
+    marketValue: 25000,
     stackable: false,
+    tradeable: true,
     usable: false,
-    equippable: true,
-    category: 'medium',
-    effects: {
-      defenseBoost: 25,
-      speedBoost: 5,
+    stats: {
+      defense: 25,
+      requiredLevel: 10,
     },
-    requirements: {
-      level: 10,
+    effects: {
+      speedBoost: 5,
     },
   },
   {
@@ -57,17 +55,16 @@ export const ARMOR: Item[] = [
     description: 'Self-repairing nano-tech armor. Top-tier protection.',
     type: 'armor',
     rarity: 'epic',
-    value: 60000,
+    marketValue: 60000,
     stackable: false,
+    tradeable: true,
     usable: false,
-    equippable: true,
-    category: 'heavy',
-    effects: {
-      defenseBoost: 40,
-      strengthBoost: 10,
+    stats: {
+      defense: 40,
+      requiredLevel: 15,
     },
-    requirements: {
-      level: 15,
+    effects: {
+      strengthBoost: 10,
     },
   },
   {
@@ -76,18 +73,17 @@ export const ARMOR: Item[] = [
     description: 'Powered exoskeleton. Makes you nearly unstoppable.',
     type: 'armor',
     rarity: 'legendary',
-    value: 150000,
+    marketValue: 150000,
     stackable: false,
+    tradeable: true,
     usable: false,
-    equippable: true,
-    category: 'heavy',
+    stats: {
+      defense: 60,
+      requiredLevel: 25,
+    },
     effects: {
-      defenseBoost: 60,
       strengthBoost: 30,
       speedBoost: 10,
-    },
-    requirements: {
-      level: 25,
     },
   },
 ]

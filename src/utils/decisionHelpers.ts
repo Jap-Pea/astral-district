@@ -4,13 +4,23 @@
 
 export const rollPercentage = () => Math.random() * 100
 
-export const computeInjuryDecision = (heartRate: number, maxHealth: number) => {
-  if (heartRate <= 150) return { injured: false, damage: 0 }
-  const overLimit = heartRate - 150
-  const injuryChance = Math.min((overLimit / 40) * 100, 90)
+export const computeInjuryDecision = (heartRate: number, maxHealth: number, maxHeartRate: number) => {
+  // Danger zone starts at 90% of max heart rate
+  const dangerThreshold = maxHeartRate * 0.9
+  if (heartRate <= dangerThreshold) return { injured: false, damage: 0 }
+  
+  // Calculate how far over the threshold (as a percentage of the danger zone)
+  const dangerZone = maxHeartRate - dangerThreshold
+  const overLimit = heartRate - dangerThreshold
+  const dangerPercent = overLimit / dangerZone // 0 to 1
+  
+  // Injury chance scales from 0% to 90% as you approach max
+  const injuryChance = Math.min(dangerPercent * 90, 90)
   const roll = rollPercentage()
+  
   if (roll < injuryChance) {
-    const damagePercent = 0.05 + (overLimit / 40) * 0.2
+    // Damage scales from 5% to 25% of max health
+    const damagePercent = 0.05 + dangerPercent * 0.2
     const damage = Math.floor(maxHealth * damagePercent)
     return { injured: true, damage }
   }

@@ -130,7 +130,7 @@ const City = () => {
       icon: '💰',
       description: 'Quick cash with high interest',
       route: '/loanshark',
-      comingSoon: true,
+      comingSoon: false,
       mapPosition: { x: 125, y: 375 },
     },
     {

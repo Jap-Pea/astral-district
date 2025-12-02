@@ -37,6 +37,7 @@ export interface User {
   inventory: InventoryItem[]
   profilePic?: string // base64 image string for avatar
   profilePicOffset?: { x: number; y: number } // position offset for avatar image
+  loanHistory?: LoanHistory
 }
 
 export interface CrimesTally {
@@ -59,6 +60,29 @@ export interface UserStats {
   defense: number
   speed: number
   dexterity: number
+}
+
+export interface Loan {
+  id: string
+  amount: number
+  interest: number
+  totalOwed: number
+  dueDate: Date
+  takenAt: Date
+  isPaid: boolean
+  paidAt?: Date
+  wasLate: boolean
+  // Running total of repayments made against this loan (principal+interest)
+  paidAmount?: number
+}
+
+export interface LoanHistory {
+  totalLoans: number
+  paidOnTime: number
+  paidLate: number
+  defaulted: number
+  currentLoans: Loan[]
+  pastLoans: Loan[]
 }
 
 export interface Ship {
