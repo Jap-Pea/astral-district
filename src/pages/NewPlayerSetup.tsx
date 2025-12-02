@@ -69,17 +69,20 @@ export default function NewPlayerSetup({
         female: '/images/races/human-female.png',
       },
       gleek: {
-        male: '/images/races/gleekMale.png', 
+        male: '/images/races/gleekMale.png',
         female: '/images/races/gleekFemale.png',
       },
       ortanz: {
-        male: '/images/races/ortanz-male.png',
-        female: '/images/races/ortanz-female.png',
+        male: '/images/races/ortanzMale.png',
+        female: '/images/races/ortanzFemale.png',
       },
     }
 
     // Placeholder fallback - replace with your images
-    return imagePaths[race][gender] || `https://placehold.co/300x400/333/fff?text=${race}+${gender}`
+    return (
+      imagePaths[race][gender] ||
+      `https://placehold.co/300x400/333/fff?text=${race}+${gender}`
+    )
   }
 
   const RACES: Record<
@@ -352,7 +355,9 @@ export default function NewPlayerSetup({
               style={{
                 height: '100%',
                 background: 'white',
-                width: `${((loadingIndex + 1) / LOADING_SCREENS.length) * 100}%`,
+                width: `${
+                  ((loadingIndex + 1) / LOADING_SCREENS.length) * 100
+                }%`,
                 transition: 'width 0.5s ease-out',
                 boxShadow: '0 0 10px rgba(255,255,255,0.5)',
               }}
@@ -425,11 +430,13 @@ export default function NewPlayerSetup({
             }}
             onMouseOver={(e) => {
               e.currentTarget.style.transform = 'translateY(-3px)'
-              e.currentTarget.style.boxShadow = '0 12px 40px rgba(139, 92, 246, 0.6)'
+              e.currentTarget.style.boxShadow =
+                '0 12px 40px rgba(139, 92, 246, 0.6)'
             }}
             onMouseOut={(e) => {
               e.currentTarget.style.transform = 'translateY(0)'
-              e.currentTarget.style.boxShadow = '0 8px 30px rgba(139, 92, 246, 0.4)'
+              e.currentTarget.style.boxShadow =
+                '0 8px 30px rgba(139, 92, 246, 0.4)'
             }}
           >
             Create Character →
@@ -543,7 +550,8 @@ export default function NewPlayerSetup({
               autoFocus
               onFocus={(e) => {
                 e.currentTarget.style.borderColor = '#4a9eff'
-                e.currentTarget.style.boxShadow = '0 0 20px rgba(74, 158, 255, 0.3)'
+                e.currentTarget.style.boxShadow =
+                  '0 0 20px rgba(74, 158, 255, 0.3)'
               }}
               onBlur={(e) => {
                 e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)'
@@ -592,7 +600,9 @@ export default function NewPlayerSetup({
                       fontWeight: 'bold',
                       fontSize: '1.1rem',
                       textTransform: 'capitalize',
-                      boxShadow: active ? '0 8px 30px rgba(74, 158, 255, 0.3)' : 'none',
+                      boxShadow: active
+                        ? '0 8px 30px rgba(74, 158, 255, 0.3)'
+                        : 'none',
                     }}
                   >
                     {g === 'male' ? '♂ Male' : '♀ Female'}
@@ -826,11 +836,13 @@ export default function NewPlayerSetup({
               }}
               onMouseOver={(e) => {
                 e.currentTarget.style.transform = 'translateY(-2px)'
-                e.currentTarget.style.boxShadow = '0 12px 40px rgba(34, 197, 94, 0.6)'
+                e.currentTarget.style.boxShadow =
+                  '0 12px 40px rgba(34, 197, 94, 0.6)'
               }}
               onMouseOut={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.boxShadow = '0 8px 30px rgba(34, 197, 94, 0.4)'
+                e.currentTarget.style.boxShadow =
+                  '0 8px 30px rgba(34, 197, 94, 0.4)'
               }}
             >
               🚀 Begin Journey

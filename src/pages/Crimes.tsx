@@ -117,7 +117,7 @@ const Crimes = () => {
       // Add rewards
       addMoney(crimeResult.moneyEarned)
       addExperience(crimeResult.experienceEarned)
-      
+
       // Only update crimesTally, don't spread entire user (would restore consumed energy)
       updateUser({
         crimesTally: {
@@ -166,12 +166,13 @@ const Crimes = () => {
           }
         } else if (newHeartRate >= user.maxHeartRate * 0.9) {
           // High HR warning even if not injured this tick
-            showModal({
-              title: 'High Heart Rate',
-              message: '⚠️ Your heart rate is in the danger zone! Slow down or you may be injured.',
-              type: 'warning',
-              icon: '⚠️',
-            })
+          showModal({
+            title: 'High Heart Rate',
+            message:
+              '⚠️ Your heart rate is in the danger zone! Slow down or you may be injured.',
+            type: 'warning',
+            icon: '⚠️',
+          })
         }
 
         const arrested = checkArrestRisk(newHeat)
@@ -200,7 +201,10 @@ const Crimes = () => {
       addExperience(crimeResult.experienceEarned)
 
       const newHeat = Math.min(user.heat + heatIncrease, user.maxHeat)
-      const newHeartRate = Math.min(user.heartRate + hrIncrease, user.maxHeartRate)
+      const newHeartRate = Math.min(
+        user.heartRate + hrIncrease,
+        user.maxHeartRate
+      )
       console.log('Failed crime - New heat:', newHeat)
 
       // Failed crimes have MUCH higher arrest chance
@@ -227,7 +231,8 @@ const Crimes = () => {
         } else if (newHeartRate >= user.maxHeartRate * 0.9) {
           showModal({
             title: 'High Heart Rate',
-            message: '⚠️ Your heart rate is in the danger zone even on failure. Rest or risk injury.',
+            message:
+              '⚠️ Your heart rate is in the danger zone even on failure. Rest or risk injury.',
             type: 'warning',
             icon: '⚠️',
           })

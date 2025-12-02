@@ -1,3 +1,4 @@
+//src/components/layout/MainLayout.tsx
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
@@ -11,6 +12,63 @@ interface StatBarProps {
   color: string
   icon: ReactNode
 }
+interface XPBarProps {
+  current: number
+  required: number
+  level: number
+}
+
+const XPBar = ({ current, required, level }: XPBarProps) => {
+  const percentage = required > 0 ? (current / required) * 100 : 0
+
+  return (
+    <div
+      style={{
+        minWidth: '200px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '4px',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          fontSize: '11px',
+          color: '#888',
+        }}
+      >
+        <span>Level {level}</span>
+        <span>
+          {current.toLocaleString()} / {required.toLocaleString()} XP
+        </span>
+      </div>
+
+      <div
+        style={{
+          width: '100%',
+          height: '8px',
+          background: '#0a1929',
+          border: '1px solid #1e4d7a',
+          borderRadius: '4px',
+          overflow: 'hidden',
+          position: 'relative',
+        }}
+      >
+        <div
+          style={{
+            height: '100%',
+            width: `${percentage}%`,
+            background: 'linear-gradient(90deg, #FFD700 0%, #FFA500 100%)',
+            transition: 'width 0.3s ease',
+            boxShadow: '0 0 10px rgba(255, 215, 0, 0.5)',
+          }}
+        />
+      </div>
+    </div>
+  )
+}
+export default XPBar
 
 const StatBar = ({ label, current, max, color, icon }: StatBarProps) => {
   const percentage = max > 0 ? (current / max) * 100 : 0
@@ -123,6 +181,11 @@ const navItems = [
     icon: <img src="images/icons/hospital.png" alt="Hospital" />,
   },
   { name: 'Network', path: '/network', icon: '🌐' },
+  {
+    name: 'Combat',
+    path: '/combat',
+    icon: '⚔️',
+  },
 ]
 
 interface MainLayoutProps {
@@ -455,6 +518,11 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
                 {user && (
                   <>
                     <div className="info-badge">Lv.{user.level}</div>
+                    <XPBar
+                      current={user.experience}
+                      required={user.experienceToNext}
+                      level={user.level}
+                    />
                     <div className="info-badge player-name">
                       {user.username}
                     </div>
@@ -520,11 +588,13 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
                 // Additional gating: while in jail/hospital only allow Home + Items + own state page
                 const jailWhitelist = ['/', '/inventory', '/jail']
                 const hospitalWhitelist = ['/', '/inventory', '/hospital']
-                const jailBlocked = isInJail && !jailWhitelist.includes(item.path)
+                const jailBlocked =
+                  isInJail && !jailWhitelist.includes(item.path)
                 const hospitalBlocked =
                   isInHospital && !hospitalWhitelist.includes(item.path)
 
-                const isBlocked = travelingBlocked || jailBlocked || hospitalBlocked
+                const isBlocked =
+                  travelingBlocked || jailBlocked || hospitalBlocked
 
                 return isBlocked ? (
                   <span
