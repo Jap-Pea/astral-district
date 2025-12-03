@@ -695,22 +695,31 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     const effects = invItem.item.effects
     if (!effects) return false
 
-    if (effects.healthRestore) {
-      restoreHealth(effects.healthRestore)
-    }
-    if (effects.energyRestore) {
-      restoreEnergy(effects.energyRestore)
-    }
-    if (effects.heartRateRestore) {
-      const newHeartRate = Math.max(
-        50,
-        user.heartRate - effects.heartRateRestore
-      )
-      updateUser({ heartRate: newHeartRate })
-    }
+    try {
+      if (effects.healthRestore) {
+        restoreHealth(effects.healthRestore)
+      }
+      if (effects.energyRestore) {
+        restoreEnergy(effects.energyRestore)
+      }
+      if (effects.heartRateRestore) {
+        const hrRestore = effects.heartRateRestore
+        setUser((prev) => {
+          if (!prev) return prev
+          return {
+            ...prev,
+            heartRate: Math.max(50, prev.heartRate - hrRestore),
+            lastAction: new Date(),
+          }
+        })
+      }
 
-    removeItemFromInventory(itemId, 1)
-    return true
+      removeItemFromInventory(itemId, 1)
+      return true
+    } catch (error) {
+      console.error('Error using item:', error)
+      return false
+    }
   }
 
   const equipItem = (itemId: string): boolean => {

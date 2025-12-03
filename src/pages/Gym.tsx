@@ -1,6 +1,7 @@
 // src/pages/Gym.tsx
 import { useState } from 'react'
 import { useUser } from '../hooks/useUser'
+import { useEnergy } from '../hooks/useEnergy'
 import { useModal } from '../hooks/useModal'
 import { computeTrainingGain } from '../utils/decisionHelpers'
 import TravelingBlocker from '../components/TravelingBlocker'
@@ -26,7 +27,8 @@ interface TrainingStat {
 }
 
 const Gym = () => {
-  const { user, consumeEnergy, updateUser, spendMoney } = useUser()
+  const { user, updateUser, spendMoney } = useUser()
+  const { consumeEnergy } = useEnergy()
   const { showModal } = useModal()
   const [isTraining, setIsTraining] = useState(false)
   const [activeMembership, setActiveMembership] = useState<string | null>(null) // TODO: Save to user

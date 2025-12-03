@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../hooks/useUser'
+import { useEnergy } from '../hooks/useEnergy'
 import { useModal } from '../hooks/useModal'
 import { mockInventory } from '../services/mockData/items'
 import TravelingBlocker from '../components/TravelingBlocker'
@@ -72,9 +73,9 @@ const Hospital = () => {
     isInHospital,
     hospitalTimeRemaining,
     applyMedInHospital,
-    consumeEnergy,
     updateUser,
   } = useUser()
+  const { consumeEnergy } = useEnergy()
   const { showModal } = useModal()
 
   const [patients, setPatients] =

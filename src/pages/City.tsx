@@ -190,10 +190,10 @@ const City = () => {
       >
         <div>
           <h1 style={{ fontSize: '32px', margin: 0, color: '#ff4444' }}>
-            Duskfall District
+            Astral District
           </h1>
           <p style={{ color: '#888', marginTop: '0.5rem' }}>
-            Explore the city and visit various locations
+            Explore the planet and visit various locations
           </p>
         </div>
 

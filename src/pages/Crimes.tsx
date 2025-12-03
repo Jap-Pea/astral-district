@@ -2,32 +2,16 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../hooks/useUser'
-import { useModal } from '../hooks/useModal'
-import { attemptCrime, getAvailableCrimes } from '../services/mockData/crimes'
+import { useCrimeActions } from '../hooks/useCrimeActions'
+import { getAvailableCrimes } from '../services/mockData/crimes'
 import type { Crime, CrimeResult } from '../types/crime.types'
 import { getTimeOfDay, getCrimeBonus } from '../utils/timeOfDay'
 import TravelingBlocker from '../components/TravelingBlocker'
-import { incrementCrime } from '../services/mockData/users'
 
 const Crimes = () => {
   const navigate = useNavigate()
-  const {
-    user,
-    setUser,
-    consumeEnergy,
-    addMoney,
-    addExperience,
-    increaseHeartRate,
-    increaseHeat,
-    checkArrestRisk,
-    checkInjuryRisk,
-    updateUser,
-    sendToJail,
-    sendToHospital,
-    isInJail,
-    isInHospital,
-  } = useUser()
-  const { showModal } = useModal()
+  const { user, isInJail, isInHospital } = useUser()
+  const { commitCrime } = useCrimeActions()
 
   // Redirect if the user is sent to jail/hospital elsewhere in the app (context)
   useEffect(() => {
@@ -53,207 +37,8 @@ const Crimes = () => {
 
   const handleCommitCrime = async (crime: Crime) => {
     if (isCommitting) return
-
-    // Check if user has enough energy
-    const energyCost = crime.energyCost
-    if (user.energy < energyCost) {
-      showModal({
-        title: 'Not Enough Energy',
-        message: `You need ${crime.energyCost} energy to commit this crime.\n\nCurrent: ${user.energy}/${user.maxEnergy}`,
-        type: 'error',
-        icon: '⚡',
-      })
-      return
-    }
-
-    setIsCommitting(true)
     setSelectedCrime(crime)
-    setResult(null)
-
-    // Consume energy FIRST
-    if (!consumeEnergy(energyCost)) {
-      setIsCommitting(false)
-      return
-    }
-
-    // Simulate crime (add suspense delay)
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-
-    // Attempt the crime
-    const crimeResult = attemptCrime(crime)
-    setResult(crimeResult)
-
-    // Handle crime injury (from the crime itself, not heartRate)
-    if (crimeResult.injured && crimeResult.healthLost > 0) {
-      const newHealth = Math.max(user.health - crimeResult.healthLost, 0)
-      updateUser({ health: newHealth })
-
-      if (newHealth === 0 || newHealth < user.maxHealth * 0.15) {
-        setTimeout(() => {
-          if (newHealth === 0) {
-            showModal({
-              title: 'Critical Injury',
-              message: "💀 You're critically injured! Going to hospital...",
-              type: 'error',
-              icon: '🩺',
-            })
-          } else {
-            showModal({
-              title: 'Injured',
-              message: "🏥 You're badly injured! Going to hospital...",
-              type: 'warning',
-              icon: '🏥',
-            })
-          }
-          // Use context to send to hospital so other components observe the state
-          sendToHospital(15)
-        }, 2500)
-        setIsCommitting(false)
-        return
-      }
-    }
-
-    if (crimeResult.success) {
-      // Add rewards
-      addMoney(crimeResult.moneyEarned)
-      addExperience(crimeResult.experienceEarned)
-
-      // Only update crimesTally, don't spread entire user (would restore consumed energy)
-      updateUser({
-        crimesTally: {
-          ...user.crimesTally,
-          total: user.crimesTally.total + 1,
-          success: user.crimesTally.success + 1,
-        },
-      })
-
-      // Increase heartRate and heat based on crime's heartRateCost
-      const hrIncrease = crime.heartRateCost
-      const heatIncrease = Math.floor(crime.requiredLevel / 6) + 2
-
-      increaseHeartRate(hrIncrease)
-      increaseHeat(heatIncrease)
-
-      // Calculate new values for risk checks
-      const newHeartRate = Math.min(
-        user.heartRate + hrIncrease,
-        user.maxHeartRate
-      )
-      const newHeat = Math.min(user.heat + heatIncrease, user.maxHeat)
-
-      console.log('After crime - HR:', newHeartRate, 'Heat:', newHeat)
-
-      // Check risks with NEW values
-      setTimeout(() => {
-        const injuryCheck = checkInjuryRisk(newHeartRate)
-        const projectedHealth = Math.max(user.health - injuryCheck.damage, 0)
-
-        if (injuryCheck.injured) {
-          showModal({
-            title: projectedHealth <= 0 ? 'Heart Attack' : 'Injury',
-            message:
-              projectedHealth <= 0
-                ? '💀 Heart attack! Going to hospital...'
-                : `⚠️ Your heart rate is dangerously high! You took ${injuryCheck.damage} damage!`,
-            type: projectedHealth <= 0 ? 'error' : 'warning',
-            icon: projectedHealth <= 0 ? '💀' : '⚠️',
-          })
-          if (projectedHealth <= 0 || projectedHealth < user.maxHealth * 0.15) {
-            // Severe injury / heart attack: send to hospital
-            sendToHospital(15)
-            setIsCommitting(false)
-            return
-          }
-        } else if (newHeartRate >= user.maxHeartRate * 0.9) {
-          // High HR warning even if not injured this tick
-          showModal({
-            title: 'High Heart Rate',
-            message:
-              '⚠️ Your heart rate is in the danger zone! Slow down or you may be injured.',
-            type: 'warning',
-            icon: '⚠️',
-          })
-        }
-
-        const arrested = checkArrestRisk(newHeat)
-        if (arrested) {
-          setTimeout(() => {
-            showModal({
-              title: 'Arrested',
-              message: "The police caught you! You're going to jail.",
-              type: 'error',
-              icon: '🚔',
-            })
-            sendToJail(30)
-            setIsCommitting(false)
-          }, 500)
-        }
-
-        setIsCommitting(false)
-      }, 100)
-    } else {
-      // Failed crime still increases heartRate and heat
-      const hrIncrease = Math.floor(crime.heartRateCost / 3) // 1/3 of the heartRate cost
-      const heatIncrease = 5 // Increased heat on failure
-
-      increaseHeartRate(hrIncrease)
-      increaseHeat(heatIncrease)
-      addExperience(crimeResult.experienceEarned)
-
-      const newHeat = Math.min(user.heat + heatIncrease, user.maxHeat)
-      const newHeartRate = Math.min(
-        user.heartRate + hrIncrease,
-        user.maxHeartRate
-      )
-      console.log('Failed crime - New heat:', newHeat)
-
-      // Failed crimes have MUCH higher arrest chance
-      setTimeout(() => {
-        // Injury risk even on failure (reduced frequency but still present)
-        const injuryCheck = checkInjuryRisk(newHeartRate)
-        const projectedHealth = Math.max(user.health - injuryCheck.damage, 0)
-
-        if (injuryCheck.injured) {
-          showModal({
-            title: projectedHealth <= 0 ? 'Heart Attack' : 'Injury',
-            message:
-              projectedHealth <= 0
-                ? '💀 Heart attack! Going to hospital...'
-                : `⚠️ You pushed too hard while failing! You took ${injuryCheck.damage} damage!`,
-            type: projectedHealth <= 0 ? 'error' : 'warning',
-            icon: projectedHealth <= 0 ? '💀' : '⚠️',
-          })
-          if (projectedHealth <= 0 || projectedHealth < user.maxHealth * 0.15) {
-            sendToHospital(15)
-            setIsCommitting(false)
-            return
-          }
-        } else if (newHeartRate >= user.maxHeartRate * 0.9) {
-          showModal({
-            title: 'High Heart Rate',
-            message:
-              '⚠️ Your heart rate is in the danger zone even on failure. Rest or risk injury.',
-            type: 'warning',
-            icon: '⚠️',
-          })
-        }
-        const arrested = checkArrestRisk(newHeat)
-        console.log('Failed crime arrest check result:', arrested)
-        if (arrested) {
-          setTimeout(() => {
-            showModal({
-              title: 'Arrested',
-              message: '🚔 You got caught! Going to jail...',
-              type: 'error',
-              icon: '🚔',
-            })
-            sendToJail(30)
-            setIsCommitting(false)
-          }, 500)
-        }
-        setIsCommitting(false)
-      }, 100)
-    }
+    await commitCrime(crime, setIsCommitting, setResult)
   }
 
   return (

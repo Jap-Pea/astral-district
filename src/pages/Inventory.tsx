@@ -1,6 +1,6 @@
 // src/pages/Inventory.tsx - Updated to use real inventory
 import { useState } from 'react'
-import { useUser } from '../hooks/useUser'
+import { useItem } from '../hooks/useItem'
 import { useModal } from '../hooks/useModal'
 import type { InventoryItem, ItemType } from '../types/item.types'
 import TravelingBlocker from '../components/TravelingBlocker'
@@ -8,12 +8,12 @@ import TravelingBlocker from '../components/TravelingBlocker'
 const Inventory = () => {
   const {
     user,
-    useItem,
+    useItem: consumeItem,
     equipItem,
     unequipItem,
-    removeItemFromInventory,
-    addMoney,
-  } = useUser()
+    sellItem,
+    getItemDefaults,
+  } = useItem()
   const { showModal } = useModal()
   const [selectedCategory, setSelectedCategory] = useState<ItemType | 'all'>(
     'all'
@@ -21,6 +21,18 @@ const Inventory = () => {
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null)
 
   if (!user) return null
+  
+  // Safety check for inventory
+  if (!user.inventory || !Array.isArray(user.inventory)) {
+    return (
+      <div>
+        <h1 style={{ fontSize: '32px', marginBottom: '0.5rem', color: '#ff4444' }}>
+          Inventory
+        </h1>
+        <p style={{ color: '#888' }}>Loading inventory...</p>
+      </div>
+    )
+  }
 
   const categories: { id: ItemType | 'all'; label: string; icon: string }[] = [
     { id: 'all', label: 'All Items', icon: '📦' },
@@ -38,7 +50,9 @@ const Inventory = () => {
       : user.inventory.filter((item) => item.item.type === selectedCategory)
 
   const handleUse = (invItem: InventoryItem) => {
-    if (!invItem.item.usable) {
+    const { isUsable } = getItemDefaults(invItem)
+    
+    if (!isUsable) {
       showModal({
         title: 'Cannot Use',
         message: 'This item cannot be used.',
@@ -48,7 +62,9 @@ const Inventory = () => {
       return
     }
 
-    if (useItem(invItem.item.id)) {
+    const success = consumeItem(invItem.item.id)
+    
+    if (success) {
       const effects = invItem.item.effects
       let message = `✅ Used ${invItem.item.name}!`
 
@@ -80,7 +96,9 @@ const Inventory = () => {
   }
 
   const handleEquip = (invItem: InventoryItem) => {
-    if (invItem.item.type !== 'weapon' && invItem.item.type !== 'armor') {
+    const { isEquippable } = getItemDefaults(invItem)
+    
+    if (!isEquippable) {
       showModal({
         title: 'Equip Failed',
         message: 'Only weapons and armor can be equipped.',
@@ -114,7 +132,9 @@ const Inventory = () => {
   }
 
   const handleSell = (invItem: InventoryItem) => {
-    if (!invItem.item.tradeable) {
+    const { isTradeable } = getItemDefaults(invItem)
+    
+    if (!isTradeable) {
       showModal({
         title: 'Cannot Sell',
         message: 'This item cannot be sold.',
@@ -134,20 +154,24 @@ const Inventory = () => {
       return
     }
 
-    const sellPrice = Math.floor(invItem.item.marketValue * 0.7)
-
-    addMoney(sellPrice)
-    removeItemFromInventory(invItem.item.id, 1)
-
-    showModal({
-      title: 'Sold',
-      message: `✅ Sold ${
-        invItem.item.name
-      } for $${sellPrice.toLocaleString()}!`,
-      type: 'success',
-      icon: '💵',
-    })
-    setSelectedItem(null)
+    const result = sellItem(invItem)
+    
+    if (result.success && result.amount) {
+      showModal({
+        title: 'Sold',
+        message: `✅ Sold ${invItem.item.name} for $${result.amount.toLocaleString()}!`,
+        type: 'success',
+        icon: '💵',
+      })
+      setSelectedItem(null)
+    } else {
+      showModal({
+        title: 'Failed',
+        message: 'Failed to sell item.',
+        type: 'error',
+        icon: '❌',
+      })
+    }
   }
 
   const getRarityColor = (rarity: string) => {
@@ -379,6 +403,7 @@ const Inventory = () => {
           onEquip={() => handleEquip(selectedItem)}
           onSell={() => handleSell(selectedItem)}
           getRarityColor={getRarityColor}
+          getItemDefaults={getItemDefaults}
         />
       )}
     </div>
@@ -393,6 +418,7 @@ const ItemDetailModal = ({
   onEquip,
   onSell,
   getRarityColor,
+  getItemDefaults,
 }: {
   item: InventoryItem
   onClose: () => void
@@ -400,9 +426,16 @@ const ItemDetailModal = ({
   onEquip: () => void
   onSell: () => void
   getRarityColor: (rarity: string) => string
+  getItemDefaults: (invItem: InventoryItem) => {
+    marketValue: number
+    isUsable: boolean
+    isTradeable: boolean
+    isEquippable: boolean
+    sellPrice: number
+  }
 }) => {
-  const sellPrice = Math.floor(item.item.marketValue * 0.7)
-
+  const { marketValue, sellPrice, isUsable, isTradeable, isEquippable } = getItemDefaults(item)
+  
   return (
     <div
       onClick={onClose}
@@ -577,7 +610,7 @@ const ItemDetailModal = ({
         >
           <InfoBox
             label="Market Value"
-            value={`$${item.item.marketValue.toLocaleString()}`}
+            value={`$${marketValue.toLocaleString()}`}
           />
           <InfoBox
             label="Sell Price"
@@ -586,7 +619,7 @@ const ItemDetailModal = ({
           <InfoBox label="Quantity" value={item.quantity.toString()} />
           <InfoBox
             label="Tradeable"
-            value={item.item.tradeable ? 'Yes' : 'No'}
+            value={isTradeable ? 'Yes' : 'No'}
           />
         </div>
 
@@ -594,7 +627,7 @@ const ItemDetailModal = ({
         <div
           style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
         >
-          {item.item.usable && (
+          {isUsable && (
             <button
               onClick={onUse}
               style={{
@@ -619,7 +652,7 @@ const ItemDetailModal = ({
             </button>
           )}
 
-          {(item.item.type === 'weapon' || item.item.type === 'armor') && (
+          {isEquippable && (
             <button
               onClick={onEquip}
               style={{
@@ -652,7 +685,7 @@ const ItemDetailModal = ({
             </button>
           )}
 
-          {item.item.tradeable && (
+          {isTradeable && (
             <button
               onClick={onSell}
               disabled={item.equipped}

@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../hooks/useUser'
+import { useEnergy } from '../hooks/useEnergy'
+import { useHeartRate } from '../hooks/useHeartRate'
 import TravelingBlocker from '../components/TravelingBlocker'
 
 interface JailedPlayer {
@@ -60,11 +62,11 @@ const Jail = () => {
     attemptJailEscape,
     payBail,
     sendToJail,
-    consumeEnergy,
     increaseHeat,
-    increaseHeartRate,
     spendMoney,
   } = useUser()
+  const { consumeEnergy } = useEnergy()
+  const { increaseHeartRate } = useHeartRate()
 
   const [escapeResult, setEscapeResult] = useState<string | null>(null)
   const [isAttempting, setIsAttempting] = useState(false)

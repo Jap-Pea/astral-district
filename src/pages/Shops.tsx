@@ -1,6 +1,7 @@
 // src/pages/Shops.tsx - small fixes: default tradeable behavior, defensive checks, console warnings
 import { useState, useEffect } from 'react'
 import { useUser } from '../hooks/useUser'
+import { useItem } from '../hooks/useItem'
 import { getItemById } from '../data/items/index'
 //import { Item } from '../types/item.types'
 import type {
@@ -95,10 +96,10 @@ const Shops = () => {
   const {
     user,
     spendMoney,
-    addMoney,
     addItemToInventory,
     removeItemFromInventory,
   } = useUser()
+  const { sellItem, getItemDefaults } = useItem()
 
   const [activeShop, setActiveShop] = useState<string | null>(null)
   const [shopStocks, setShopStocks] = useState<Record<string, ShopItem[]>>({})
@@ -172,18 +173,19 @@ const Shops = () => {
       return setMessage('❌ Cannot sell equipped items')
     }
 
-    // Only block selling when tradeable is explicitly false
-    if (inventoryItem.item.tradeable === false) {
+    const { isTradeable } = getItemDefaults(inventoryItem)
+    if (!isTradeable) {
       return setMessage('❌ This item cannot be sold')
     }
 
-    const sellPrice = Math.floor((inventoryItem.item.value ?? 0) * 0.7)
-
-    addMoney(sellPrice)
-    removeItemFromInventory(itemId, 1)
-    setMessage(
-      `✅ Sold ${inventoryItem.item.name} for $${sellPrice.toLocaleString()}!`
-    )
+    const result = sellItem(inventoryItem)
+    if (result.success && result.amount) {
+      setMessage(
+        `✅ Sold ${inventoryItem.item.name} for $${result.amount.toLocaleString()}!`
+      )
+    } else {
+      setMessage('❌ Failed to sell item')
+    }
   }
 
   // Lobby view
@@ -460,7 +462,10 @@ const Shops = () => {
           {user.inventory
             // treat undefined tradeable as true (only filter out when explicitly false)
             .filter(
-              (invItem) => (invItem.item.tradeable ?? true) && !invItem.equipped
+              (invItem) => {
+                const { isTradeable } = getItemDefaults(invItem)
+                return isTradeable && !invItem.equipped
+              }
             )
             .map((invItem) => {
               const sellPrice = Math.floor((invItem.item.value ?? 0) * 0.7)
@@ -546,7 +551,10 @@ const Shops = () => {
             })}
 
           {user.inventory.filter(
-            (invItem) => (invItem.item.tradeable ?? true) && !invItem.equipped
+            (invItem) => {
+              const { isTradeable } = getItemDefaults(invItem)
+              return isTradeable && !invItem.equipped
+            }
           ).length === 0 && (
             <div style={styles.emptyState}>
               <div style={{ fontSize: '48px', marginBottom: '1rem' }}>📦</div>
