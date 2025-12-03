@@ -22,7 +22,7 @@ const PLANETS: Planet[] = [
     name: 'Earth',
     icon: (
       <img
-        src="images/planets/earth.jpg"
+        src="/images/planets/earth.jpg"
         alt="Earth"
         style={{ width: '100%', height: '100%', borderRadius: '50%' }}
       />
@@ -39,7 +39,7 @@ const PLANETS: Planet[] = [
     name: 'Alpha Centauri',
     icon: (
       <img
-        src="images/planets/alphaCentauri.jpg"
+        src="/images/planets/alphaCentauri.jpg"
         alt="Alpha Centauri"
         style={{ width: '100%', height: '100%', borderRadius: '50%' }}
       />

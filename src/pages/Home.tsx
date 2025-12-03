@@ -372,7 +372,7 @@ const Home = () => {
             <StatCard
               label="Chips"
               value={`$${user.money.toLocaleString()}`}
-              icon={<img src="images/icons/dollar.png" alt="Chips" />}
+              icon={<img src="images/icons/dollar.png" alt="Astral Credits" />}
               color="green"
             />
             <StatCard

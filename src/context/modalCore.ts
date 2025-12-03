@@ -1,11 +1,11 @@
-// ...existing code...
+
 import { createContext } from 'react'
 
 export interface ModalMessage {
   title: string
   message: string
   type: 'success' | 'error' | 'info' | 'warning'
-  icon?: string
+  icon?: ReactNode
 }
 
 export interface ModalContextType {

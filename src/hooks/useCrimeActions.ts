@@ -105,7 +105,7 @@ export const useCrimeActions = () => {
         setTimeout(() => {
           showModal({
             title: 'Arrested',
-            message: "🚔 The police caught you! You're going to jail.",
+            message: "🚔 The space police caught you! You're going to jail.",
             type: 'error',
             icon: '🚔',
           })
