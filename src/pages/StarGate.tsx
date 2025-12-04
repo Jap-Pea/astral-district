@@ -1,6 +1,7 @@
 // src/pages/StarGate.tsx
 import React, { useState, useEffect } from 'react'
 import { useUser } from '../hooks/useUser'
+import HyperJumpSwitch from '../components/ui/HyperJumpSwitch'
 
 type FuelType = 'ion' | 'fusion' | 'quantum'
 
@@ -656,23 +657,19 @@ const StarGate = () => {
               )}
             </div>
 
-            {/* Initiate Jump Button */}
-            <button
-              onClick={() =>
-                handleInitiateTravel(selectedPlanet, selectedFuelType)
-              }
-              style={styles.jumpButton}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background =
-                  'linear-gradient(135deg, #00e5ff 0%, #c040ff 100%)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background =
-                  'linear-gradient(135deg, #00d9ff 0%, #b829ff 100%)'
-              }}
-            >
-              INITIATE HYPERSPACE JUMP
-            </button>
+            {/* Hyperjump Switch */}
+            <div style={{ marginTop: '2rem', marginBottom: '1rem' }}>
+              <HyperJumpSwitch
+                onInitiate={() =>
+                  handleInitiateTravel(selectedPlanet, selectedFuelType)
+                }
+                disabled={
+                  !canUseFuelType(selectedPlanet, selectedFuelType) ||
+                  getFuelCount(selectedFuelType) <
+                    getFuelCost(selectedPlanet, selectedFuelType)
+                }
+              />
+            </div>
 
             <button
               onClick={() => setSelectedPlanet(null)}

@@ -1,3 +1,4 @@
+//src/data/items/armor.ts
 import type { Item } from '../../types/item.types'
 
 export const ARMOR: Item[] = [

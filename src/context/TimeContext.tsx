@@ -67,11 +67,3 @@ export const TimeProvider: React.FC<{
     </TimeContext.Provider>
   )
 }
-
-// EXPLANATION:
-// - Changed tickIntervalSec default from 10 to 300 (5 minutes)
-// - Increased regen rates to compensate for longer intervals
-// - Energy: +5 per 5min = 1 energy per minute
-// - Health: +3 per 5min (slow natural healing)
-// - HeartRate: -5 per 5min (calms down over time)
-// - Heat: -5 per 5min (police attention fades)

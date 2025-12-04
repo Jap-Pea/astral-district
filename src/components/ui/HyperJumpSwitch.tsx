@@ -1,0 +1,445 @@
+// src/components/ui/HyperJumpSwitch.tsx
+import React, { useState } from 'react'
+
+interface HyperJumpSwitchProps {
+  onInitiate: () => void
+  disabled?: boolean
+}
+
+const HyperJumpSwitch: React.FC<HyperJumpSwitchProps> = ({
+  onInitiate,
+  disabled = false,
+}) => {
+  const [guardOpen, setGuardOpen] = useState(false)
+  const [switchOn, setSwitchOn] = useState(false)
+
+  const handleGuardChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setGuardOpen(e.target.checked)
+    if (!e.target.checked) {
+      setSwitchOn(false)
+    }
+  }
+
+  const handleSwitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!guardOpen || disabled) return
+    setSwitchOn(e.target.checked)
+    if (e.target.checked) {
+      onInitiate()
+      // Reset after initiation
+      setTimeout(() => {
+        setSwitchOn(false)
+        setGuardOpen(false)
+      }, 300)
+    }
+  }
+
+  return (
+    <>
+      <style>{switchStyles}</style>
+      <div className={`toggle-switch-wrapper ${disabled ? 'disabled' : ''}`}>
+        <div className="toggle-switch">
+          <input
+            className="guard"
+            type="checkbox"
+            checked={guardOpen}
+            onChange={handleGuardChange}
+            disabled={disabled}
+          />
+          <span className="guard-sides"></span>
+          <input
+            className="switch"
+            type="checkbox"
+            checked={switchOn}
+            onChange={handleSwitchChange}
+            disabled={!guardOpen || disabled}
+          />
+          <span className="knob"></span>
+          <span className="light"></span>
+        </div>
+      </div>
+    </>
+  )
+}
+
+const switchStyles = `
+.toggle-switch-wrapper {
+  position: relative;
+  padding: 10px;
+  border: 1px solid #202020;
+  border-radius: 10px;
+  outline: 3px solid #a1a1a1;
+  background: repeating-linear-gradient(
+        -45deg,
+        #f5dd00,
+        #f5dd00 12px,
+        #101010 10px,
+        #101010 23px
+      );
+  margin: 2rem auto;
+  width: fit-content;
+}
+
+.toggle-switch-wrapper.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.toggle-switch-wrapper:before {
+  content: "Hyperjump Initiation";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: -22px;
+  text-align: center;
+  text-transform: uppercase;
+  font-family: system-ui;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  width: 100%;
+  opacity: 0.8;
+  color: #ffffff;
+}
+
+.toggle-switch {
+  border-radius: 5px;
+  border: 2px solid #202020;
+  outline: 2px solid #a1a1a1;
+  background: #404040;
+  outline-offset: 0px;
+  padding: 3px;
+  margin: 0;
+  perspective: 300px;
+  position: relative;
+  box-shadow: 0 0 1px #050506, inset 0 0 0 2px #050506, inset 0 3px 1px #66646c;
+}
+
+.toggle-switch:before {
+  content: "";
+  position: absolute;
+  right: 1px;
+  top: 10px;
+  height: 20px;
+  width: 2px;
+  border-top-right-radius: 3px;
+  background-color: #a3a3a3;
+  z-index: 1;
+}
+
+.toggle-switch:after {
+  content: "";
+  position: absolute;
+  left: 1px;
+  top: 10px;
+  height: 20px;
+  width: 2px;
+  border-top-left-radius: 3px;
+  background-color: #a3a3a3;
+}
+
+.toggle-switch .guard {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  appearance: none;
+  display: block;
+  width: 50px;
+  height: 100px;
+  border-radius: 7px;
+  background: linear-gradient(0deg, 
+    rgba(166,46,41,1) 0%, 
+    rgba(210,47,41,1) 6%, 
+    rgba(237,71,65,1) 16%, 
+    rgba(237,71,65,1) 27%, 
+    rgba(210,47,41,1) 68%, 
+    rgba(210,47,41,1) 100%);
+  box-shadow: 
+    inset -2px -2px 3px rgba(0,0,0,0.3), 
+    inset 2px 2px 3px rgba(255,255,255,0.5);
+  cursor: grab;
+  transform-origin: 50% 0%;
+  transition: transform 0.2s ease;
+  perspective: 500px;
+  filter: drop-shadow(0px 0px 0px rgba(0,0,0,1));
+  border: 1px solid black;
+  z-index: 3;
+}
+
+.toggle-switch .guard:after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: calc(100% - 20px);
+  position: absolute;
+  top: 20px;
+  opacity: 0.6;
+  background: linear-gradient(0deg, 
+    rgba(110,29,25,1) 0%, 
+    rgba(173,46,41,1) 4%, 
+    rgba(210,47,41,1) 11%, 
+    rgba(237,71,65,1) 21%, 
+    rgba(242,107,102,1) 32%, 
+    rgba(237,71,65,1) 41%, 
+    rgba(237,71,65,1) 41%, 
+    rgba(210,47,41,1) 63%, 
+    rgba(210,47,41,1) 100%);
+  border-radius: 7px;
+}
+
+.toggle-switch .guard:before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50%;
+  height: 10px;
+  background-color: #303030;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  border: 3px ridge #656565;
+  top: -2px;
+}
+
+.toggle-switch .guard:checked {
+  background: rgba(237,71,65,1);
+  transform: rotateX(70deg);
+  filter: drop-shadow(0px 0px 0px rgba(0,0,0,1));
+  background: linear-gradient(180deg, 
+    rgba(166,46,41,1) 4%, 
+    rgba(210,47,41,1) 38%, 
+    rgba(237,71,65,1) 59%, 
+    rgba(242,113,108,1) 71%, 
+    rgba(242,113,108,1) 94%, 
+    rgba(210,47,41,1) 100%);
+  z-index: 3;
+}
+
+.toggle-switch .guard:checked + .guard-sides {
+  transform: translateY(0px);
+}
+
+.toggle-switch .guard-sides {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100px;
+  display: block;
+  transform: translateY(45px);
+  transition: all 0.2s ease;
+}
+
+.toggle-switch .guard-sides:before {
+  content: "";
+  display: block;
+  position: absolute;
+  left: 2px;
+  top: 15px;
+  width: 8px;
+  height: 40px;
+  background-color: red;
+  border-radius: 0px;
+  background: linear-gradient(0deg, 
+    rgba(166,46,41,1) 0%, 
+    rgba(210,47,41,1) 6%, 
+    rgba(237,71,65,1) 16%, 
+    rgba(237,71,65,1) 27%, 
+    rgba(210,47,41,1) 68%, 
+    rgba(210,47,41,1) 100%);
+  box-shadow: 
+    inset -2px -2px 3px rgba(0,0,0,0.3), 
+    inset 2px 2px 1px rgba(255,255,255,0.2),
+    0px 3px 3px rgba(0,0,0,0.4);
+}
+
+.toggle-switch .guard-sides:after {
+  content: "";
+  display: block;
+  position: absolute;
+  right: 2px;
+  top: 15px;
+  width: 8px;
+  height: 40px;
+  background-color: red;
+  border-radius: 0px;
+  background: linear-gradient(0deg, 
+    rgba(166,46,41,1) 0%, 
+    rgba(210,47,41,1) 6%, 
+    rgba(237,71,65,1) 16%, 
+    rgba(237,71,65,1) 27%, 
+    rgba(210,47,41,1) 68%, 
+    rgba(210,47,41,1) 100%);
+  box-shadow: 
+    inset -2px -2px 3px rgba(0,0,0,0.3), 
+    inset 2px 2px 1px rgba(255,255,255,0.2),
+    0px 3px 3px rgba(0,0,0,0.4);
+}
+
+.toggle-switch .switch {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  appearance: none;
+  display: block;
+  user-select: none;
+  background: #a1a1a1;
+  background: linear-gradient(to left, #a1a1a1 0%, #a1a1a1 1%, #c0c0c0 26%, #b1b1b1 48%, #909090 75%, #a1a1a1 100%);
+  top: 70%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%) rotate(-90deg);
+  width: 52px;
+  height: 50px;
+  clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0% 50%);
+  z-index: 0;
+  cursor: pointer;
+  filter: drop-shadow(1px 1px 3px rgba(255,255,255,1));
+}
+
+.toggle-switch .switch:before {
+  content: "\\2B22";
+  display: block;
+  font-size: 50px;
+  position: absolute;
+  transform: rotate(90deg);
+  color: transparent;
+  text-shadow: 
+    -1px 1px 1px rgba(255,255,255,0.3), 
+    1px 1px 0.5px rgba(0,0,0,0.4),
+    -1px -1px 1px rgba(255,255,255,1),
+    -2px 0px 0px rgba(0,0,0,1),
+    -2px -2px 0px rgba(0,0,0,1),
+    1px -1px 0px rgba(0,0,0,1);
+  box-shadow: inset 1px 1px 1px rgba(255,255,255,1),
+    inset -1px -1px 1px rgba(0,0,0,0.5);
+  top: -12px;
+  left: 5px;
+}
+
+.toggle-switch .switch:after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  background: #000;
+  border-radius: 100%;
+  width: 15px;
+  font-size: 18px;
+  height: 15px;
+  text-indent: -0.22em;
+  line-height: 0.7em;
+  opacity: 0.8;
+  border: 4px double #726e6e;
+  box-shadow: 
+    2px 2px 2px rgba(255,255,255,0.5),
+    -2px -2px 2px rgba(255,255,255,0.5);
+}
+
+.toggle-switch .switch:checked + .knob {
+  transform: translateX(-50%) rotateX(0deg);
+  bottom: 13px;
+}
+
+.toggle-switch .switch:checked + .knob:after {
+  background: -webkit-radial-gradient(50% -70%, rgba(38, 38, 38, 0.5), #e6e6e6 25%, #ffffff 38%, #a1a1a1 63%, #e6e6e6 87%, rgba(38, 38, 38, 1));
+  height: 15px;
+  bottom: -10px;
+}
+
+.toggle-switch .switch:checked ~ .light {
+  background: #ed4741;
+  box-shadow: 0px 0px 10px rgba(255,0,0,1);
+}
+
+.toggle-switch .switch:checked ~ .light:after {
+  opacity: 0.3;
+  box-shadow: 0px 0px 20px rgba(255,0,0,1);
+}
+
+.toggle-switch .switch:checked ~ .light:before {
+  opacity: 1;
+}
+
+.toggle-switch .knob {
+  position: absolute;
+  display: block;
+  width: 12px;
+  height: 25px;
+  bottom: 15px;
+  left: 50%;
+  pointer-events: none;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  transform: translateX(-50%) translateY(-14px) rotateX(-175deg);
+  background: linear-gradient(to left, lightgrey 0%, lightgrey 1%, #e0e0e0 26%, #efefef 48%, #d9d9d9 75%, #bcbcbc 100%);
+  border: 1px solid #000;
+  z-index: 2;
+  transition: all 0.2s ease;
+  box-shadow: inset 0px -3px 3px rgba(0,0,0,1),
+    inset 0px 3px 3px rgba(0,0,0,0.7);
+}
+
+.toggle-switch .knob:after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: -2px;
+  width: 12px;
+  border-radius: 6px;
+  height: 15px;
+  border: 1px solid black;
+  border-top: 0;
+  background: -webkit-radial-gradient(50% -40%, rgba(38, 38, 38, 0.5), #e6e6e6 25%, #ffffff 38%, #a1a1a1 63%, #e6e6e6 87%, rgba(38, 38, 38, 1));
+}
+
+.toggle-switch .light {
+  position: absolute;
+  bottom: -40px;
+  display: block;
+  width: 50px;
+  height: 20px;
+  left: 50%;
+  padding: 2px;
+  transform: translateX(-50%);
+  background-color: grey;
+  border-radius: 7px;
+  border: 2px ridge black;
+  z-index: 0;
+  transition: all 0.4s ease;
+}
+
+.toggle-switch .light:before {
+  opacity: 0;
+  content: "";
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0px;
+  top: 0px;
+  mix-blend-mode: overlay;
+  background: radial-gradient(at center, #F6D656, #EC3D3D);
+  transition: all 1s ease;
+}
+
+.toggle-switch .light:after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  position: absolute;
+  opacity: 0.2;
+  background-image: radial-gradient(#ffffff50 2px, transparent 0);
+  background-size: 5px 5px;
+  background-position: -18px -15px;
+  z-index: 1;
+  border-radius: 7px;
+  outline: 2px solid #a1a1a1;
+  border: 1px solid #00000050;
+  transition: all 1s ease;
+}
+`
+
+export default HyperJumpSwitch

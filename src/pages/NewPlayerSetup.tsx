@@ -15,28 +15,30 @@ const LOADING_SCREENS = [
   {
     title: 'Initializing Neural Interface...',
     subtitle: 'Connecting to the Astral Network',
-    icon: '🧠',
-    gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    icon: '🔗',
+    gradient: 'linear-gradient(135deg, #1a0033 0%, #2d1b69 100%)',
   },
   {
     title: 'Scanning Biometric Data...',
     subtitle: 'Analyzing genetic markers',
-    icon: '🔬',
-    gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+    icon: '🧬',
+    gradient: 'linear-gradient(135deg, #0f0033 0%, #4a1a7a 100%)',
   },
   {
     title: 'Establishing Quantum Link...',
     subtitle: 'Syncing with district mainframe',
-    icon: '⚡',
-    gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+    icon: '⚛️',
+    gradient: 'linear-gradient(135deg, #1a0052 0%, #3d2694 100%)',
   },
   {
     title: 'Loading Character Matrix...',
     subtitle: 'Preparing your digital identity',
-    icon: '🌌',
-    gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+    icon: '👤',
+    gradient: 'linear-gradient(135deg, #0a001a 0%, #5c2bb8 100%)',
   },
 ]
+
+const INTRO_TEXT = `It's the year 2187, the Astral District Corporation controls trade, security, and information across the outer colonies. Its influence reaches every orbital station and drifting habitat. In the shadows of this corporate empire, crime syndicates rise, fortunes are stolen, and power changes hands by force. Build your network. Claim your territory. Decide how far you're willing to go`
 
 export default function NewPlayerSetup({
   onComplete,
@@ -45,8 +47,12 @@ export default function NewPlayerSetup({
   onComplete: (result: NewPlayerResult) => void
   initialUsername?: string
 }) {
-  const [stage, setStage] = useState<'loading' | 'intro' | 'setup'>('loading')
+  const [stage, setStage] = useState<
+    'splash' | 'astral' | 'intro' | 'loading' | 'setup'
+  >('splash')
   const [loadingIndex, setLoadingIndex] = useState(0)
+  const [showIntroButton, setShowIntroButton] = useState(false)
+  const [introText, setIntroText] = useState('')
   const [username, setUsername] = useState(initialUsername)
   const [race, setRace] = useState<RaceKey | null>(null)
   const [gender, setGender] = useState<GenderKey | null>(null)
@@ -65,8 +71,8 @@ export default function NewPlayerSetup({
   const getRaceImage = (race: RaceKey, gender: GenderKey): string => {
     const imagePaths = {
       human: {
-        male: '/images/races/human-male.png',
-        female: '/images/races/human-female.png',
+        male: '/images/races/humanMale.png',
+        female: '/images/races/humanFemale.png',
       },
       gleek: {
         male: '/images/races/gleekMale.png',
@@ -137,6 +143,43 @@ export default function NewPlayerSetup({
     },
   }
 
+  // Splash screen - auto advance after animation
+  useEffect(() => {
+    if (stage === 'splash') {
+      const timer = setTimeout(() => {
+        setStage('astral')
+      }, 6000) // 6 seconds total (3s visible + 2s fade out)
+      return () => clearTimeout(timer)
+    }
+  }, [stage])
+
+  // ASTRAL.gif screen - auto advance after animation
+  useEffect(() => {
+    if (stage === 'astral') {
+      const timer = setTimeout(() => {
+        setStage('intro')
+      }, 8000) // 8 seconds for ASTRAL.gif with fade out
+      return () => clearTimeout(timer)
+    }
+  }, [stage])
+
+  // Typewriter effect for intro text
+  useEffect(() => {
+    if (stage === 'intro') {
+      let currentIndex = 0
+      const interval = setInterval(() => {
+        if (currentIndex <= INTRO_TEXT.length) {
+          setIntroText(INTRO_TEXT.slice(0, currentIndex))
+          currentIndex++
+        } else {
+          clearInterval(interval)
+          setShowIntroButton(true)
+        }
+      }, 50) // Typing speed
+      return () => clearInterval(interval)
+    }
+  }, [stage])
+
   // Loading screen progression
   useEffect(() => {
     if (stage !== 'loading') return
@@ -144,12 +187,12 @@ export default function NewPlayerSetup({
     const interval = setInterval(() => {
       setLoadingIndex((prev) => {
         if (prev >= LOADING_SCREENS.length - 1) {
-          setStage('intro')
+          setStage('setup')
           return prev
         }
         return prev + 1
       })
-    }, 1500)
+    }, 2500)
 
     return () => clearInterval(interval)
   }, [stage])
@@ -215,7 +258,7 @@ export default function NewPlayerSetup({
             fontWeight: '600',
           }}
         >
-          📊 Character Stats Preview
+          Character Stats Preview
         </div>
         <div
           style={{
@@ -284,6 +327,108 @@ export default function NewPlayerSetup({
     )
   }
 
+  // Splash Screen with IndaiGo logo
+  if (stage === 'splash') {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#000000',
+          animation:
+            'fadeInSlow 1.5s ease-in, fadeOutSlow 2s ease-out 3s forwards',
+          flexDirection: 'column',
+        }}
+      >
+        <style>{`
+          @keyframes fadeInSlow {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          @keyframes fadeOutSlow {
+            from { opacity: 1; }
+            to { opacity: 0; }
+          }
+          @keyframes logoGlow {
+            0%, 100% { 
+              filter: drop-shadow(0 0 20px rgba(107, 163, 191, 0.3));
+              transform: scale(1);
+            }
+            50% { 
+              filter: drop-shadow(0 0 40px rgba(107, 163, 191, 0.6));
+              transform: scale(1.02);
+            }
+          }
+        `}</style>
+        <div
+          style={{
+            textAlign: 'center',
+            animation: 'logoGlow 5s ease-in-out infinite',
+          }}
+        >
+          <img
+            src="/images/IndaiGoCopy.png"
+            alt="IndaiGo - Astral District"
+            style={{
+              width: '500px',
+              height: 'auto',
+              maxWidth: '90vw',
+            }}
+          />
+        </div>
+        <div
+          style={{
+            fontSize: '2rem',
+            color: '#4a9eff',
+            fontWeight: 'bold',
+            marginTop: '2rem',
+            textShadow: '0 0 20px rgba(74, 158, 255, 0.5)',
+            textAlign: 'center',
+          }}
+        >
+          Games Presents
+        </div>
+      </div>
+    )
+  }
+
+  // ASTRAL.gif Screen
+  if (stage === 'astral') {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#000000',
+          animation:
+            'fadeInSlowSmooth 3s ease-in-out, fadeOutSmooth 2.5s ease-out 4s forwards',
+        }}
+      >
+        <style>{`
+          @keyframes fadeInSlowSmooth {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          @keyframes fadeOutSmooth {
+            from { opacity: 1; }
+            to { opacity: 0; }
+          }
+        `}</style>
+        <div style={{ textAlign: 'center' }}>
+          <img
+            src="/images/ASTRAL.gif"
+            alt="Astral District"
+            style={{ width: '600px', height: '600px', maxWidth: '100vw' }}
+          />
+        </div>
+      </div>
+    )
+  }
+
   // Loading Screen
   if (stage === 'loading') {
     const currentScreen = LOADING_SCREENS[loadingIndex]
@@ -294,7 +439,8 @@ export default function NewPlayerSetup({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: currentScreen.gradient,
+          background: '#000000',
+          padding: '2rem',
           animation: 'fadeIn 0.5s ease-out',
         }}
       >
@@ -311,13 +457,32 @@ export default function NewPlayerSetup({
             from { transform: translateX(-20px); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
           }
+          @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
         `}</style>
-        <div style={{ textAlign: 'center', color: 'white' }}>
+        <div
+          style={{
+            maxWidth: '600px',
+            width: '100%',
+            padding: '3rem',
+            background:
+              'linear-gradient(135deg, rgba(10, 37, 64, 0.95), rgba(6, 24, 41, 0.95))',
+            border: '2px solid #1e4d7a',
+            borderRadius: '1rem',
+            textAlign: 'center',
+            color: 'white',
+            animation: 'slideUp 0.8s ease-out',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.9)',
+          }}
+        >
           <div
             style={{
               fontSize: '5rem',
-              marginBottom: '1rem',
+              marginBottom: '1.5rem',
               animation: 'pulse 2s ease-in-out infinite',
+              filter: 'drop-shadow(0 0 20px rgba(74, 158, 255, 0.5))',
             }}
           >
             {currentScreen.icon}
@@ -326,8 +491,9 @@ export default function NewPlayerSetup({
             style={{
               fontSize: '2.5rem',
               fontWeight: 'bold',
-              marginBottom: '0.5rem',
-              textShadow: '0 4px 20px rgba(0,0,0,0.5)',
+              marginBottom: '1rem',
+              textShadow: '0 0 20px rgba(74, 158, 255, 0.5)',
+              color: '#4a9eff',
             }}
           >
             {currentScreen.title}
@@ -336,39 +502,52 @@ export default function NewPlayerSetup({
             style={{
               fontSize: '1.2rem',
               opacity: 0.9,
-              marginBottom: '2rem',
+              marginBottom: '2.5rem',
+              color: '#8ab4cf',
             }}
           >
             {currentScreen.subtitle}
           </p>
           <div
             style={{
-              width: '300px',
-              height: '4px',
-              background: 'rgba(255,255,255,0.2)',
-              borderRadius: '2px',
+              width: '100%',
+              maxWidth: '400px',
+              height: '6px',
+              background: 'rgba(74, 158, 255, 0.2)',
+              borderRadius: '3px',
               overflow: 'hidden',
               margin: '0 auto',
+              border: '1px solid rgba(74, 158, 255, 0.3)',
             }}
           >
             <div
               style={{
                 height: '100%',
-                background: 'white',
+                background: 'linear-gradient(90deg, #4a9eff, #8b5cf6)',
                 width: `${
                   ((loadingIndex + 1) / LOADING_SCREENS.length) * 100
                 }%`,
                 transition: 'width 0.5s ease-out',
-                boxShadow: '0 0 10px rgba(255,255,255,0.5)',
+                boxShadow: '0 0 15px rgba(74, 158, 255, 0.8)',
               }}
             />
+          </div>
+          <div
+            style={{
+              marginTop: '1rem',
+              fontSize: '0.9rem',
+              color: '#6ba3bf',
+              opacity: 0.8,
+            }}
+          >
+            {loadingIndex + 1} / {LOADING_SCREENS.length}
           </div>
         </div>
       </div>
     )
   }
 
-  // Intro Screen
+  // Intro Screen with typewriter effect
   if (stage === 'intro') {
     return (
       <div
@@ -377,70 +556,163 @@ export default function NewPlayerSetup({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'linear-gradient(135deg, #0a2540 0%, #061829 100%)',
-          padding: '2rem',
-          animation: 'fadeIn 0.8s ease-out',
+          background: '#000000',
+          padding: '0rem',
+          animation: 'fadeInSmooth 2s ease-in-out',
         }}
       >
+        <style>{`
+          @keyframes fadeInSmooth {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          @keyframes typing {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          @keyframes buttonSlide {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          
+          .sci-fi-frame {
+            position: relative;
+          }
+          
+          .sci-fi-frame::before,
+          .sci-fi-frame::after,
+          .sci-fi-frame .corner-tl,
+          .sci-fi-frame .corner-tr,
+          .sci-fi-frame .corner-bl,
+          .sci-fi-frame .corner-br {
+            content: '';
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border: 3px solid #8b7355;
+          }
+          
+          .sci-fi-frame::before {
+            top: -3px;
+            left: -3px;
+            border-right: none;
+            border-bottom: none;
+            border-top-left-radius: 5px;
+          }
+          
+          .sci-fi-frame::after {
+            top: -3px;
+            right: -3px;
+            border-left: none;
+            border-bottom: none;
+            border-top-right-radius: 5px;
+          }
+          
+          .corner-bl {
+            bottom: -3px;
+            left: -3px;
+            border-right: none;
+            border-top: none;
+            border-bottom-left-radius: 5px;
+          }
+          
+          .corner-br {
+            bottom: -3px;
+            right: -3px;
+            border-left: none;
+            border-top: none;
+            border-bottom-right-radius: 5px;
+          }
+        `}</style>
         <div
+          className="sci-fi-frame"
           style={{
-            maxWidth: '700px',
+            maxWidth: '800px',
+            width: '100%',
+            padding: '3rem',
+            background:
+              'linear-gradient(135deg, rgba(10, 37, 64, 0.95), rgba(6, 24, 41, 0.95))',
+            border: '2px solid #8b7355',
             textAlign: 'center',
             color: '#6ba3bf',
+            animation: 'slideUp 1s ease-out',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.9)',
+            position: 'relative' as const,
           }}
         >
-          <div style={{ fontSize: '4rem', marginBottom: '2rem' }}>🌌</div>
-          <h1
+          <div className="corner-bl"></div>
+          <div className="corner-br"></div>
+          <div
             style={{
-              fontSize: '3rem',
-              fontWeight: 'bold',
-              color: '#4a9eff',
-              marginBottom: '1rem',
-              textShadow: '0 0 30px rgba(74, 158, 255, 0.5)',
+              fontSize: '2rem',
+              marginBottom: '-8rem',
+              marginTop: '-5rem',
             }}
           >
-            Welcome to Astral District
-          </h1>
+            <img
+              src="images/astraldistrict.png"
+              alt="Astral District"
+              style={{ width: '400px', height: '600px' }}
+            />
+          </div>
+
           <p
             style={{
               fontSize: '1.2rem',
-              lineHeight: '1.8',
-              marginBottom: '2rem',
+              lineHeight: '1.5',
+              marginBottom: '0.8rem',
               color: '#6ba3bf',
+              minHeight: '200px',
+              textAlign: 'left',
+              fontFamily: 'monospace',
             }}
           >
-            In the year 2847, humanity has spread across the stars. The Astral
-            District is a sprawling megacity floating in deep space, where
-            fortune seekers, criminals, and heroes collide. Choose your path
-            wisely—every decision shapes your destiny.
+            {introText}
+            {introText.length < INTRO_TEXT.length && (
+              <span
+                style={{
+                  animation: 'typing 0.3s infinite',
+                  marginLeft: '2px',
+                }}
+              >
+                ▊
+              </span>
+            )}
           </p>
-          <button
-            onClick={() => setStage('setup')}
-            style={{
-              padding: '1rem 3rem',
-              fontSize: '1.3rem',
-              fontWeight: 'bold',
-              background: 'linear-gradient(135deg, #8b5cf6, #6366f1)',
-              border: 'none',
-              borderRadius: '12px',
-              color: 'white',
-              cursor: 'pointer',
-              boxShadow: '0 8px 30px rgba(139, 92, 246, 0.4)',
-              transition: 'all 0.3s ease',
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = 'translateY(-3px)'
-              e.currentTarget.style.boxShadow =
-                '0 12px 40px rgba(139, 92, 246, 0.6)'
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)'
-              e.currentTarget.style.boxShadow =
-                '0 8px 30px rgba(139, 92, 246, 0.4)'
-            }}
-          >
-            Create Character →
-          </button>
+          {showIntroButton && (
+            <button
+              onClick={() => setStage('loading')}
+              style={{
+                padding: '1rem 3rem',
+                fontSize: '1.3rem',
+                fontWeight: 'bold',
+                background: 'linear-gradient(135deg, #8b5cf6, #6366f1)',
+                border: 'none',
+                borderRadius: '12px',
+                color: 'white',
+                cursor: 'pointer',
+                boxShadow: '0 8px 30px rgba(139, 92, 246, 0.4)',
+                transition: 'all 0.3s ease',
+                animation: 'buttonSlide 0.5s ease-out',
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'translateY(-3px)'
+                e.currentTarget.style.boxShadow =
+                  '0 12px 40px rgba(139, 92, 246, 0.6)'
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)'
+                e.currentTarget.style.boxShadow =
+                  '0 8px 30px rgba(139, 92, 246, 0.4)'
+              }}
+            >
+              Create Character →
+            </button>
+          )}
         </div>
       </div>
     )
@@ -454,8 +726,7 @@ export default function NewPlayerSetup({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background:
-          'url(/images/spacebg.gif) center/cover fixed, linear-gradient(135deg, #0a2540 0%, #061829 100%)',
+        background: '#000000',
         padding: '2rem',
         animation: 'fadeIn 0.5s ease-out',
       }}
@@ -468,6 +739,10 @@ export default function NewPlayerSetup({
         @keyframes slideIn {
           from { transform: translateX(-20px); opacity: 0; }
           to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
         }
         .race-card {
           transition: all 0.3s ease;
@@ -490,13 +765,14 @@ export default function NewPlayerSetup({
         style={{
           maxWidth: '1000px',
           width: '100%',
-          background: 'rgba(10, 37, 64, 0.85)',
+          background:
+            'linear-gradient(135deg, rgba(10, 37, 64, 0.95), rgba(6, 24, 41, 0.95))',
           backdropFilter: 'blur(20px)',
           border: '2px solid #1e4d7a',
-          borderRadius: '16px',
+          borderRadius: '1rem',
           padding: '3rem',
           boxShadow: '0 20px 60px rgba(0, 0, 0, 0.9)',
-          animation: 'fadeIn 0.5s ease-out',
+          animation: 'slideUp 0.8s ease-out',
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
@@ -528,7 +804,7 @@ export default function NewPlayerSetup({
                 color: '#6ba3bf',
               }}
             >
-              🎭 Character Name
+              Character Name
             </label>
             <input
               style={{
@@ -623,7 +899,7 @@ export default function NewPlayerSetup({
                 color: '#6ba3bf',
               }}
             >
-              🧬 Select Your Race
+              Select Your Race
             </label>
             <div
               style={{
@@ -756,7 +1032,7 @@ export default function NewPlayerSetup({
                   fontStyle: 'italic',
                 }}
               >
-                💡 Select a gender first to see race images
+                Select a gender first to see race images
               </div>
             )}
           </div>
@@ -845,7 +1121,7 @@ export default function NewPlayerSetup({
                   '0 8px 30px rgba(34, 197, 94, 0.4)'
               }}
             >
-              🚀 Begin Journey
+              Begin Journey
             </button>
           </div>
         </form>

@@ -1,3 +1,4 @@
+//src/data/items/fuel.ts
 export const FUEL: Item[] = [
   {
     id: 'fuel_ion_propellant',

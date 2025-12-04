@@ -1,3 +1,4 @@
+//src/data/items/consumables.ts
 export const CONSUMABLES: Item[] = [
   // HEALTH
   {

@@ -65,6 +65,7 @@ export default function NewPlayerGate({
 }) {
   const { user, updateUser } = useUser()
   const [showResetConfirm, setShowResetConfirm] = useState(false)
+  const [showFinalScreen, setShowFinalScreen] = useState(false)
 
   const handleResetGame = () => {
     // Clear localStorage
@@ -178,7 +179,6 @@ export default function NewPlayerGate({
       createdAt: new Date(),
 
       tutorialCompleted: false,
-      hasSeenWelcome: false,
 
       perks: result.perks,
 
@@ -192,6 +192,9 @@ export default function NewPlayerGate({
         theme: 'dark',
       },
     })
+
+    // Show final screen after character creation
+    setShowFinalScreen(true)
 
     console.log(`🎉 New player created: ${result.username} (${playerId})`)
   }
@@ -232,104 +235,249 @@ export default function NewPlayerGate({
     return <NewPlayerSetup onComplete={handleSetupComplete} />
   }
 
-  // User exists but hasn't seen welcome
-  if (!user.hasSeenWelcome) {
+  // Final screen after character creation
+  if (showFinalScreen && user) {
     return (
       <div
         style={{
           position: 'fixed',
           inset: 0,
-          background: 'rgba(0, 0, 0, 0.9)',
+          background: 'rgba(0, 0, 0, 0.95)',
           backdropFilter: 'blur(10px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 9999,
+          animation: 'fadeIn 0.8s ease-out',
         }}
       >
+        <style>{`
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+        `}</style>
         <div
           style={{
-            maxWidth: '600px',
+            maxWidth: '700px',
             padding: '3rem',
-            background: 'rgba(10, 37, 64, 0.9)',
+            background:
+              'linear-gradient(135deg, rgba(10, 37, 64, 0.95), rgba(6, 24, 41, 0.95))',
             border: '2px solid #1e4d7a',
             borderRadius: '1rem',
             textAlign: 'center',
             color: '#6ba3bf',
+            animation: 'slideUp 0.8s ease-out',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.9)',
           }}
         >
-          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🌌</div>
-          <h1
+          <div
             style={{
-              fontSize: '2.5rem',
-              marginBottom: '1rem',
-              color: '#4a9eff',
-              textShadow: '0 0 20px rgba(74, 158, 255, 0.5)',
+              fontSize: '5rem',
+              marginBottom: '1.5rem',
+              filter: 'drop-shadow(0 0 20px rgba(74, 158, 255, 0.5))',
             }}
           >
-            Welcome to Astral District!
+            🌌
+          </div>
+          <h1
+            style={{
+              fontSize: '3rem',
+              marginBottom: '1rem',
+              color: '#4a9eff',
+              textShadow: '0 0 30px rgba(74, 158, 255, 0.6)',
+              fontWeight: 'bold',
+            }}
+          >
+            Welcome to the District
           </h1>
           <p
             style={{
-              fontSize: '1.2rem',
-              marginBottom: '2rem',
+              fontSize: '1.4rem',
+              marginBottom: '2.5rem',
               lineHeight: '1.6',
+              color: '#8ab4cf',
             }}
           >
-            Welcome, <strong>{user.username}</strong>! Your journey begins now.
+            <strong style={{ color: '#4a9eff' }}>{user.username}</strong>, your
+            neural interface is now online.
+            <br />
+            The Astral District awaits.
           </p>
           <div
             style={{
               textAlign: 'left',
-              background: 'rgba(255, 255, 255, 0.05)',
-              padding: '1.5rem',
-              borderRadius: '0.5rem',
-              marginBottom: '2rem',
+              background: 'rgba(74, 158, 255, 0.08)',
+              padding: '2rem',
+              borderRadius: '0.75rem',
+              marginBottom: '2.5rem',
+              border: '1px solid rgba(74, 158, 255, 0.2)',
             }}
           >
-            <h3 style={{ marginBottom: '1rem', color: '#4a9eff' }}>
-              You've received:
+            <h3
+              style={{
+                marginBottom: '1.5rem',
+                color: '#4a9eff',
+                fontSize: '1.3rem',
+                textAlign: 'center',
+              }}
+            >
+              ⚡ Initial Loadout
             </h3>
-            <ul style={{ listStyle: 'none', padding: 0 }}>
-              <li style={{ marginBottom: '0.5rem' }}>
-                💰 ${user.money?.toLocaleString()} starting money
-              </li>
-              <li style={{ marginBottom: '0.5rem' }}>❤️ {user.maxHealth} HP</li>
-              <li style={{ marginBottom: '0.5rem' }}>
-                ⚡ {user.maxEnergy} Energy
-              </li>
-              <li style={{ marginBottom: '0.5rem' }}>
-                🎒 {STARTER_ITEMS.length} starter items
-              </li>
-              <li style={{ marginBottom: '0.5rem' }}>🚀 Your first ship</li>
-            </ul>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '1rem',
+              }}
+            >
+              <div
+                style={{
+                  padding: '1rem',
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  borderRadius: '0.5rem',
+                }}
+              >
+                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>
+                  💰
+                </div>
+                <div
+                  style={{
+                    fontSize: '1.5rem',
+                    fontWeight: 'bold',
+                    color: '#4a9eff',
+                  }}
+                >
+                  ${user.money?.toLocaleString()}
+                </div>
+                <div style={{ fontSize: '0.85rem', opacity: 0.8 }}>Credits</div>
+              </div>
+              <div
+                style={{
+                  padding: '1rem',
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  borderRadius: '0.5rem',
+                }}
+              >
+                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>
+                  ❤️
+                </div>
+                <div
+                  style={{
+                    fontSize: '1.5rem',
+                    fontWeight: 'bold',
+                    color: '#ef4444',
+                  }}
+                >
+                  {user.maxHealth}
+                </div>
+                <div style={{ fontSize: '0.85rem', opacity: 0.8 }}>
+                  Health Points
+                </div>
+              </div>
+              <div
+                style={{
+                  padding: '1rem',
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  borderRadius: '0.5rem',
+                }}
+              >
+                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>
+                  ⚡
+                </div>
+                <div
+                  style={{
+                    fontSize: '1.5rem',
+                    fontWeight: 'bold',
+                    color: '#fbbf24',
+                  }}
+                >
+                  {user.maxEnergy}
+                </div>
+                <div style={{ fontSize: '0.85rem', opacity: 0.8 }}>Energy</div>
+              </div>
+              <div
+                style={{
+                  padding: '1rem',
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  borderRadius: '0.5rem',
+                }}
+              >
+                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>
+                  🚀
+                </div>
+                <div
+                  style={{
+                    fontSize: '1.5rem',
+                    fontWeight: 'bold',
+                    color: '#8b5cf6',
+                  }}
+                >
+                  Starter Pod
+                </div>
+                <div style={{ fontSize: '0.85rem', opacity: 0.8 }}>Ship</div>
+              </div>
+            </div>
+            <div
+              style={{
+                marginTop: '1.5rem',
+                padding: '1rem',
+                background: 'rgba(34, 197, 94, 0.1)',
+                borderRadius: '0.5rem',
+                border: '1px solid rgba(34, 197, 94, 0.3)',
+              }}
+            >
+              <div style={{ fontSize: '0.95rem', color: '#6ba3bf' }}>
+                🎒 <strong>{STARTER_ITEMS.length} Starter Items</strong> added
+                to inventory
+              </div>
+            </div>
+          </div>
+          <div
+            style={{
+              marginBottom: '2rem',
+              fontSize: '1rem',
+              lineHeight: '1.6',
+              color: '#6ba3bf',
+              fontStyle: 'italic',
+              opacity: 0.9,
+            }}
+          >
+            "In the District, opportunity and danger walk hand in hand. Choose
+            your path wisely."
           </div>
           <button
-            onClick={() => updateUser({ hasSeenWelcome: true })}
+            onClick={() => setShowFinalScreen(false)}
             style={{
-              padding: '1rem 2rem',
-              fontSize: '1.2rem',
+              padding: '1.25rem 3rem',
+              fontSize: '1.3rem',
               fontWeight: 'bold',
-              background: 'linear-gradient(135deg, #8b5cf6, #6366f1)',
+              background: 'linear-gradient(135deg, #22c55e, #16a34a)',
               border: 'none',
-              borderRadius: '0.5rem',
+              borderRadius: '0.75rem',
               color: 'white',
               cursor: 'pointer',
               transition: 'all 0.3s',
-              boxShadow: '0 4px 20px rgba(139, 92, 246, 0.4)',
+              boxShadow: '0 8px 30px rgba(34, 197, 94, 0.4)',
+              textTransform: 'uppercase',
+              letterSpacing: '1px',
             }}
             onMouseOver={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)'
+              e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)'
               e.currentTarget.style.boxShadow =
-                '0 6px 30px rgba(139, 92, 246, 0.6)'
+                '0 12px 40px rgba(34, 197, 94, 0.6)'
             }}
             onMouseOut={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.transform = 'translateY(0) scale(1)'
               e.currentTarget.style.boxShadow =
-                '0 4px 20px rgba(139, 92, 246, 0.4)'
+                '0 8px 30px rgba(34, 197, 94, 0.4)'
             }}
           >
-            Begin Your Journey 🚀
+            Enter The District →
           </button>
         </div>
       </div>
@@ -383,11 +531,10 @@ export default function NewPlayerGate({
             <ul
               style={{
                 listStyle: 'none',
-                padding: 0,
+                padding: '1rem',
                 marginBottom: '2rem',
                 textAlign: 'left',
                 background: 'rgba(239, 68, 68, 0.1)',
-                padding: '1rem',
                 borderRadius: '0.5rem',
               }}
             >
@@ -450,7 +597,7 @@ export default function NewPlayerGate({
       )}
 
       {/* Floating Reset Button (bottom right corner) - Only in development */}
-      {process.env.NODE_ENV === 'development' && (
+      {import.meta.env.DEV && (
         <button
           onClick={() => setShowResetConfirm(true)}
           style={{

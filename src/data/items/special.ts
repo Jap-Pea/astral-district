@@ -1,3 +1,4 @@
+//src/data/items/special.ts
 import type { Item } from '../../types/item.types'
 export const SPECIAL_ITEMS: Item[] = [
   {

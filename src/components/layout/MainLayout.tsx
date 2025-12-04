@@ -277,15 +277,19 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
           font-size: 1.6rem;
           font-weight: bold;
           letter-spacing: 3px;
-          color: #4a9eff;
-          text-shadow: 0 0 10px rgba(74, 158, 255, 0.5);
+          background: linear-gradient(90deg, #4a9eff, #74c3ff);
+          -webkit-background-clip: text;
+          color: transparent;
+          text-shadow: 0 0 12px rgba(74, 158, 255, 0.4);
         }
 
         .logo-sub {
           font-size: 0.65rem;
-          color: #6ba3bf;
-          letter-spacing: 1px;
-        }
+          color: #8ab9d4;
+          letter-spacing: 1.5px;
+          text-transform: uppercase;
+          opacity: 0.85;
+      }
 
         .player-info {
           display: flex;

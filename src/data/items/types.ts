@@ -1,3 +1,4 @@
+//src/data/items/types.ts
 export type ItemType =
   | 'weapon'
   | 'armor'
