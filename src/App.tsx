@@ -2,18 +2,20 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { UserProvider } from './context/UserContext'
 import { ModalProvider } from './context/ModalContext'
+import { NotificationProvider } from './context/NotificationContext'
+import { MessageProvider } from './context/MessageContext'
 import { MainLayout } from './components/layout/MainLayout'
 import { DevPanel } from './components/common/DevPanel'
 import { GlobalModal } from './components/common/GlobalModal'
 import { useUser } from './hooks/useUser'
 
 import NewPlayerGate from './pages/NewPlayerGate'
-
-import Home from './pages/Home'
+import Missions from './pages/Missions'
+import CockpitHome from './pages/CockpitHome'
+import Dashboard from './pages/Dashboard'
 import Crimes from './pages/Crimes'
 import Gym from './pages/Gym'
 import Inventory from './pages/Inventory'
-import Market from './pages/Market'
 import Combat from './pages/Combat'
 import City from './pages/City'
 import Network from './pages/Network'
@@ -40,27 +42,149 @@ function AppContent() {
 
   return (
     <>
-      <MainLayout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/crimes" element={<Crimes />} />
-          <Route path="/gym" element={<Gym />} />
-          <Route path="/inventory" element={<Inventory />} />
-          <Route path="/market" element={<Market />} />
-          <Route path="/combat" element={<Combat />} />
-          <Route path="/city" element={<City />} />
-          <Route path="/network" element={<Network />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/jail" element={<Jail />} />
-          <Route path="/hospital" element={<Hospital />} />
-          <Route path="*" element={<NotFound />} />
-          <Route path="/casino" element={<Casino />} />
-          <Route path="/shops" element={<Shops />} />
-          <Route path="/starGate" element={<StarGate />} />
-          <Route path="/shipyard" element={<Shipyard />} />
-          <Route path="/loanShark" element={<LoanShark />} />
-        </Routes>
-      </MainLayout>
+      <Routes>
+        {/* Home page without MainLayout (has its own cockpit UI) */}
+        <Route path="/" element={<CockpitHome />} />
+
+        {/* All other routes with MainLayout */}
+        <Route
+          path="/dashboard"
+          element={
+            <MainLayout>
+              <Dashboard />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/crimes"
+          element={
+            <MainLayout>
+              <Crimes />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/gym"
+          element={
+            <MainLayout>
+              <Gym />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/inventory"
+          element={
+            <MainLayout>
+              <Inventory />
+            </MainLayout>
+          }
+        />
+
+        <Route
+          path="/combat"
+          element={
+            <MainLayout>
+              <Combat />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/city"
+          element={
+            <MainLayout>
+              <City />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/network"
+          element={
+            <MainLayout>
+              <Network />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <MainLayout>
+              <Profile />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/jail"
+          element={
+            <MainLayout>
+              <Jail />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/hospital"
+          element={
+            <MainLayout>
+              <Hospital />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="*"
+          element={
+            <MainLayout>
+              <NotFound />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/casino"
+          element={
+            <MainLayout>
+              <Casino />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/shops"
+          element={
+            <MainLayout>
+              <Shops />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/starGate"
+          element={
+            <MainLayout>
+              <StarGate />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/shipyard"
+          element={
+            <MainLayout>
+              <Shipyard />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/loanShark"
+          element={
+            <MainLayout>
+              <LoanShark />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/missions"
+          element={
+            <MainLayout>
+              <Missions />
+            </MainLayout>
+          }
+        />
+      </Routes>
       <DevPanel
         isOpen={devPanelOpen}
         onClose={toggleDevPanel}
@@ -79,11 +203,15 @@ function App() {
   return (
     <BrowserRouter>
       <UserProvider>
-        <ModalProvider>
-          <NewPlayerGate>
-            <AppContent />
-          </NewPlayerGate>
-        </ModalProvider>
+        <NotificationProvider>
+          <MessageProvider>
+            <ModalProvider>
+              <NewPlayerGate>
+                <AppContent />
+              </NewPlayerGate>
+            </ModalProvider>
+          </MessageProvider>
+        </NotificationProvider>
       </UserProvider>
     </BrowserRouter>
   )

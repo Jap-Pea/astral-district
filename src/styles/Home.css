@@ -1,0 +1,896 @@
+/* ========================================
+   COCKPIT HOME PAGE STYLES
+   ======================================== */
+
+/* === BASE STYLES === */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* === COCKPIT CONTAINER === */
+.cockpit-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1920px; /* Base design width */
+  height: 1080px; /* Base design height */
+  overflow: hidden;
+  font-family: 'Orbitron', 'Courier New', monospace;
+  color: #00ffff;
+  z-index: 9999;
+  background: #000;
+  transform-origin: top left;
+}
+
+/* Layout Toggle Button */
+.layout-toggle-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  background: rgba(0, 100, 150, 0.8);
+  border: 2px solid #00ffff;
+  border-radius: 6px;
+  color: #00ffff;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 10001;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+}
+
+.layout-toggle-btn:hover {
+  background: rgba(0, 150, 200, 0.9);
+  box-shadow: 0 0 25px rgba(0, 255, 255, 0.6);
+  transform: translateY(-2px);
+}
+
+.cockpit-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 1;
+}
+
+/* Earth Orbit Video - Slowed Down */
+.earth-orbit-video {
+  /* Slow down video to 50% speed (adjust the value: 0.5 = half speed, 0.25 = quarter speed) */
+  animation: none;
+}
+
+/* === SCREEN CONTAINERS === */
+.screen {
+  position: absolute;
+  background: linear-gradient(
+    135deg,
+    rgba(10, 25, 47, 0.95) 0%,
+    rgba(15, 35, 60, 0.95) 100%
+  );
+  border: 2px solid #00ffff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 30px rgba(0, 255, 255, 0.4),
+    inset 0 0 20px rgba(0, 255, 255, 0.1);
+  z-index: 2;
+}
+
+.screen-inner {
+  padding: 10px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+}
+
+/* === SCREEN POSITIONS === */
+
+/* Profile Card - Top Left */
+.profile-screen-cockpit {
+  position: absolute;
+  top: 50px;
+  left: 400px;
+  width: 220px;
+  z-index: 2;
+  transform: skewX(2deg);
+}
+
+/* Player Stats - Top Right */
+.player-stats-screen {
+  position: absolute;
+  top: 60px;
+  right: 360px;
+  width: 220px;
+  height: 210px;
+  z-index: 2;
+}
+
+/* 3D Ship Viewer - Middle Right */
+.ship-hologram {
+  position: absolute;
+  top: 400px;
+  right: 30px;
+  z-index: 2;
+  width: 450px;
+  height: 350px;
+  filter: hue-rotate(120deg) brightness(1);
+  opacity: 100%;
+  animation: hologram-flicker 2s infinite;
+}
+
+/* Fuel Reserve Hologram - Left Side */
+.fuel-hologram {
+  position: absolute;
+  top: 400px;
+  left: 30px;
+  z-index: 2;
+  width: 200px;
+  height: 250px;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 255, 255, 0.05) 0%,
+    rgba(0, 150, 255, 0.05) 100%
+  );
+  border: 2px solid rgba(0, 255, 255, 0.4);
+  border-radius: 8px;
+  backdrop-filter: blur(4px);
+  opacity: 0.85;
+  animation: hologram-flicker 2.5s infinite;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.3),
+    inset 0 0 20px rgba(0, 255, 255, 0.1);
+}
+
+.fuel-hologram-inner {
+  padding: 20px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.fuel-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #00ffff;
+  text-align: center;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+  border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+  padding-bottom: 10px;
+}
+
+.fuel-types {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+  justify-content: center;
+}
+
+.fuel-type-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(0, 255, 255, 0.05);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.fuel-type-row:hover {
+  background: rgba(0, 255, 255, 0.1);
+  border-color: rgba(0, 255, 255, 0.4);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+.fuel-type-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #00d9ff;
+  letter-spacing: 1px;
+  text-shadow: 0 0 5px rgba(0, 217, 255, 0.5);
+}
+
+.fuel-type-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #00ffff;
+  font-family: 'Courier New', monospace;
+  text-shadow: 0 0 8px rgba(0, 255, 255, 0.8);
+}
+
+/* Clock - Top Center */
+.clock-screen {
+  top: 542px;
+  left: 50.9%;
+  transform: translateX(-50%) perspective(500px) rotateX(10deg);
+  width: 220px;
+  height: 35px;
+}
+
+/* Location - Center Left */
+.location-screen {
+  top: 56.5%;
+  left: 585px;
+  transform: translateY(-50%);
+  width: 160px;
+  height: 35px;
+}
+
+/* Ship Stats & Actions - Center Main */
+.center-main-screen {
+  top: 64%;
+  left: 50.9%;
+  transform: translate(-50%, -50%) perspective(500px) rotateX(10deg);
+  width: 370px;
+  height: 200px;
+  background: url('/images/console-bg.jpg') !important;
+  background-size: cover !important;
+  background-position: center !important;
+}
+
+/* Inventory - Center Right */
+.inventory-screen {
+  top: 56.5%;
+  right: 550px;
+  transform: translateY(-50%);
+  width: 160px;
+  height: 40px;
+}
+
+/* Quick Actions & Menu - Bottom Left */
+.quick-actions-screen {
+  bottom: 264px;
+  left: 465px;
+  transform: perspective(500px) rotateX(10deg) rotateZ(1deg) skew(-5deg);
+  width: 180px;
+  height: 140px;
+  overflow: visible !important;
+}
+
+/* Info (Network/Missions/News) - Bottom Right */
+.info-screen {
+  bottom: 260px;
+  right: 426px;
+  transform: perspective(500px) rotateX(10deg) rotateZ(0deg) skew(5deg);
+  width: 180px;
+  height: 140px;
+}
+
+/* === PROFILE CARD === */
+.card-border {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  background: linear-gradient(
+    135deg,
+    rgba(144, 149, 156, 0.98) 0%,
+    rgba(5, 20, 39, 0.98) 100%
+  );
+  border: 2px solid #00ffff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 30px rgba(0, 255, 255, 0.5),
+    inset 0 0 20px rgba(0, 255, 255, 0.1);
+  animation: card-pulse 2s ease-in-out infinite;
+}
+
+.card-bg {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.profile-pic {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid #000000ff;
+  box-shadow: 0 0 20px rgba(231, 0, 0, 0.64);
+}
+
+.profile-pic img {
+  width: 130%;
+  height: 130%;
+  object-fit: cover;
+  cursor: move;
+}
+
+/* Profile Text Elements */
+.viper {
+  position: absolute;
+  font-family: 'Orbitron', 'Courier New', monospace;
+  font-weight: bold;
+  color: #00ffff;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+  z-index: 10;
+}
+
+.viper:nth-of-type(1) {
+  top: 5px;
+  left: 20%;
+  transform: translateX(-50%);
+  font-size: 16px;
+  letter-spacing: 2px;
+}
+
+#text-border {
+  top: 150px;
+  left: 28%;
+  transform: translateX(-50%);
+  font-size: 14px;
+  letter-spacing: 3px;
+  opacity: 0.8;
+}
+
+#text-ext {
+  top: 200px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 8px;
+  letter-spacing: 4px;
+  opacity: 0.5;
+}
+
+/* Profile Animations */
+.marquee {
+  position: absolute;
+  top: -10px;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.2;
+}
+
+.marquee__inner {
+  width: 100%;
+  height: 100%;
+  animation: marquee-rotate 20s linear infinite;
+}
+
+#blur-area {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 50%;
+  background: linear-gradient(to top, rgba(10, 25, 47, 0.9), transparent);
+}
+
+.mist-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.mist {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle,
+    rgba(135, 238, 238, 0.1) 0%,
+    transparent 70%
+  );
+  animation: mist-move 15s ease-in-out infinite;
+}
+
+.edit-profile-btn {
+  display: block;
+  margin: 5px auto 0;
+  padding: 8px 16px;
+  background: rgba(0, 100, 150, 0.6);
+  border: 2px solid #00ffff;
+  border-radius: 6px;
+  color: #00ffff;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.edit-profile-btn:hover {
+  background: rgba(0, 150, 200, 0.8);
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+}
+
+.edit-profile-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* === PLAYER STATS === */
+.stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  padding: 5px 8px;
+  background: rgba(0, 255, 255, 0.05);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  border-radius: 4px;
+  margin-bottom: 4px;
+  font-size: 9px;
+}
+
+.stat-label {
+  color: rgba(0, 255, 255, 0.8);
+  font-size: 16px;
+}
+
+.stat-value {
+  color: #fff;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+/* === SHIP STATS === */
+.ship-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.ship-bar {
+  height: 12px;
+  background: url('/images/console-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+.ship-bar-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.stat-label-inline,
+.stat-value-inline {
+  font-size: 16px;
+}
+
+.stat-label-inline {
+  color: rgba(0, 255, 255, 0.9);
+}
+
+.stat-value-inline {
+  color: #fff;
+  font-weight: bold;
+}
+
+/* === DISPLAYS === */
+
+/* Clock Display */
+.clock-display {
+  font-size: 14px;
+  font-weight: bold;
+  color: #00ffff;
+  text-align: center;
+  letter-spacing: 1px;
+  font-family: 'Courier New', monospace;
+  text-shadow: 0 0 15px #00ffff;
+  padding: 8px;
+}
+
+/* Location Display */
+.location-planet {
+  font-size: 14px;
+  font-weight: bold;
+  color: #afb1bbff;
+  text-align: center;
+}
+
+/* === BUTTONS === */
+
+/* Action Buttons */
+.action-buttons-inline {
+  display: flex;
+  gap: 5px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.action-btn-small {
+  flex: 1;
+  padding: 6px 8px;
+  background: rgba(0, 100, 150, 0.6);
+  border: 2px solid #00ffff;
+  border-radius: 6px;
+  color: #00ffff;
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+  text-transform: uppercase;
+}
+
+.action-btn-small:hover {
+  background: rgba(0, 150, 200, 0.8);
+  box-shadow: 0 0 25px rgba(0, 255, 255, 0.6);
+  transform: translateY(-2px);
+}
+
+/* Navigation Buttons */
+.nav-btn-compact {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 8px;
+  background: rgba(0, 100, 150, 0.5);
+  border: 1px solid #00ffff;
+  border-radius: 4px;
+  color: #00ffff;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 5px;
+  width: 100%;
+}
+
+.nav-btn-compact:hover {
+  background: rgba(0, 150, 200, 0.7);
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+  transform: translateX(3px);
+}
+
+/* Inventory Button */
+.inventory-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 100, 150, 0.6);
+  border: 2px solid #030303;
+  border-radius: 6px;
+  color: #00ffff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.inventory-btn:hover {
+  background: rgba(0, 150, 200, 0.8);
+  box-shadow: 0 0 25px rgba(0, 255, 255, 0.6);
+  transform: scale(1.05);
+}
+
+.btn-text {
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+/* === MENU DROPDOWN === */
+.menu-dropdown {
+  position: absolute;
+  bottom: 100px;
+  left: -200px;
+  width: 200px;
+  background: linear-gradient(
+    135deg,
+    rgba(10, 25, 47, 0.98) 0%,
+    rgba(15, 35, 60, 0.98) 100%
+  );
+  border: 2px solid #00ffff;
+  border-radius: 8px;
+  box-shadow: 0 0 30px rgba(0, 255, 255, 0.5),
+    inset 0 0 20px rgba(0, 255, 255, 0.1);
+  z-index: 999999;
+  max-height: 400px;
+  overflow-y: auto;
+  animation: menuSlideIn 1s ease-out;
+}
+
+.menu-dropdown.closing {
+  animation: menuSlideOut 2s ease-out forwards;
+}
+
+@keyframes menuSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes menuSlideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+
+.menu-dropdown button {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(0, 100, 150, 0.3);
+  border: none;
+  border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+  color: #00ffff;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.menu-dropdown button:first-child {
+  border-radius: 6px 6px 0 0;
+}
+
+.menu-dropdown button:last-child {
+  border-radius: 0 0 6px 6px;
+  border-bottom: none;
+}
+
+.menu-dropdown button:hover {
+  background: rgba(0, 150, 200, 0.7);
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+  transform: translateX(5px);
+}
+
+/* === LEVEL PROGRESS INDICATOR === */
+.level-progress-container {
+  position: absolute;
+  top: 50px;
+  left: 10%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 120px;
+  animation: wobble-level 4s ease-in-out infinite;
+  z-index: 2;
+}
+
+.level-percentage {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  top: 50%;
+  left: 50%;
+  color: rgba(222, 116, 29, 1);
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+  font-weight: bold;
+  text-align: center;
+  z-index: 1;
+}
+
+/* Level Progress SVG Circles */
+.outer-circle-level {
+  fill: transparent;
+  stroke: rgba(222, 116, 29, 1);
+  stroke-width: 2;
+  stroke-dasharray: 7 1;
+  stroke-dashoffset: 0;
+}
+
+.outer-circle-bars-l {
+  fill: transparent;
+  stroke: rgba(222, 116, 29, 1);
+  stroke-width: 7;
+  stroke-dasharray: 0.4 7.6;
+  stroke-dashoffset: 0.1;
+}
+
+.outer-circle-bars-r {
+  fill: transparent;
+  stroke: rgba(222, 116, 29, 1);
+  stroke-width: 7;
+  stroke-dasharray: 0.4 7.6;
+  stroke-dashoffset: 1.4;
+}
+
+.inner-progress-circle {
+  fill: transparent;
+  stroke: rgba(222, 116, 29, 1);
+  stroke-width: 7;
+  stroke-dasharray: 7 1;
+  stroke-dashoffset: 0.05;
+}
+
+.inner-half-circle {
+  fill: transparent;
+  stroke: rgba(222, 116, 29, 1);
+  stroke-width: 7;
+  stroke-dasharray: 24.5 0.5;
+  stroke-dashoffset: 0;
+}
+
+.center-outer-circle {
+  fill: transparent;
+  stroke: rgba(222, 116, 29, 0.5);
+  stroke-width: 1;
+  stroke-dasharray: 0;
+  stroke-dashoffset: 0;
+}
+
+.center-inner-circle-second {
+  fill: transparent;
+  stroke: rgba(222, 116, 29, 1);
+  stroke-width: 2;
+  stroke-dasharray: 5 95;
+  stroke-dashoffset: 0;
+  animation: centerInnerCircleSecond 20s linear infinite;
+  animation-timing-function: steps(4, end);
+}
+
+.center-inner-circle-3 {
+  fill: transparent;
+  stroke: rgba(222, 116, 29, 0.3);
+  stroke-width: 2;
+  stroke-dasharray: 33 66;
+  stroke-dashoffset: -10;
+}
+
+.center-inner-circle-3-dashed-vertical {
+  fill: transparent;
+  stroke: rgba(222, 116, 29, 0.6);
+  stroke-width: 7;
+  stroke-dasharray: 0.2 7.8;
+  stroke-dashoffset: 0;
+}
+
+.center-inner-circle-3-dashed {
+  fill: transparent;
+  stroke: rgba(222, 116, 29, 0.3);
+  stroke-width: 1;
+  stroke-dasharray: 1 3.5;
+  stroke-dashoffset: 0;
+}
+
+.center-inner-circle-2 {
+  fill: transparent;
+  stroke: rgba(222, 116, 29, 0.3);
+  stroke-width: 1;
+  stroke-dasharray: 75 25;
+  stroke-dashoffset: 60;
+}
+
+.center-inner-circle-1 {
+  fill: transparent;
+  stroke: rgba(222, 116, 29, 0.3);
+  stroke-width: 1;
+  stroke-dasharray: 95 5;
+  stroke-dashoffset: 20;
+}
+
+.center-inner-circle-0 {
+  fill: transparent;
+  stroke: rgba(222, 116, 29, 0.3);
+  stroke-width: 7;
+  stroke-dasharray: 0.3 0.7;
+  stroke-dashoffset: 0;
+  animation: centerInnerCircle0 40s linear infinite;
+}
+
+.small-rectangles {
+  fill: rgba(222, 116, 29, 0.6);
+}
+
+/* === ANIMATIONS === */
+@keyframes card-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.5),
+      inset 0 0 20px rgba(0, 255, 255, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(0, 255, 255, 0.7),
+      inset 0 0 30px rgba(0, 255, 255, 0.15);
+  }
+}
+
+@keyframes marquee-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes mist-move {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(20px, 20px);
+  }
+}
+
+@keyframes hologram-flicker {
+  0%,
+  100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes wobble-level {
+  0% {
+    transform: translate(-50%, 0px);
+  }
+  25% {
+    transform: translate(-50%, -2px) translateX(2px);
+  }
+  50% {
+    transform: translate(-50%, 2px);
+  }
+  75% {
+    transform: translate(-50%, -1px) translateX(-2px);
+  }
+  100% {
+    transform: translate(-50%, 0px);
+  }
+}
+
+@keyframes centerInnerCircleSecond {
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(90deg);
+  }
+  50% {
+    transform: rotate(180deg);
+  }
+  75% {
+    transform: rotate(270deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes centerInnerCircle0 {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

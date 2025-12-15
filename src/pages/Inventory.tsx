@@ -21,12 +21,14 @@ const Inventory = () => {
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null)
 
   if (!user) return null
-  
+
   // Safety check for inventory
   if (!user.inventory || !Array.isArray(user.inventory)) {
     return (
       <div>
-        <h1 style={{ fontSize: '32px', marginBottom: '0.5rem', color: '#ff4444' }}>
+        <h1
+          style={{ fontSize: '32px', marginBottom: '0.5rem', color: '#ff4444' }}
+        >
           Inventory
         </h1>
         <p style={{ color: '#888' }}>Loading inventory...</p>
@@ -51,7 +53,7 @@ const Inventory = () => {
 
   const handleUse = (invItem: InventoryItem) => {
     const { isUsable } = getItemDefaults(invItem)
-    
+
     if (!isUsable) {
       showModal({
         title: 'Cannot Use',
@@ -63,7 +65,7 @@ const Inventory = () => {
     }
 
     const success = consumeItem(invItem.item.id)
-    
+
     if (success) {
       const effects = invItem.item.effects
       let message = `✅ Used ${invItem.item.name}!`
@@ -97,7 +99,7 @@ const Inventory = () => {
 
   const handleEquip = (invItem: InventoryItem) => {
     const { isEquippable } = getItemDefaults(invItem)
-    
+
     if (!isEquippable) {
       showModal({
         title: 'Equip Failed',
@@ -133,7 +135,7 @@ const Inventory = () => {
 
   const handleSell = (invItem: InventoryItem) => {
     const { isTradeable } = getItemDefaults(invItem)
-    
+
     if (!isTradeable) {
       showModal({
         title: 'Cannot Sell',
@@ -155,11 +157,13 @@ const Inventory = () => {
     }
 
     const result = sellItem(invItem)
-    
+
     if (result.success && result.amount) {
       showModal({
         title: 'Sold',
-        message: `✅ Sold ${invItem.item.name} for $${result.amount.toLocaleString()}!`,
+        message: `✅ Sold ${
+          invItem.item.name
+        } for $${result.amount.toLocaleString()}!`,
         type: 'success',
         icon: '💵',
       })
@@ -294,9 +298,7 @@ const Inventory = () => {
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-4px)'
-                e.currentTarget.style.borderColor = getRarityColor(
-                  invItem.item.rarity
-                )
+                e.currentTarget.style.borderColor = '#4a9eff'
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)'
@@ -343,15 +345,32 @@ const Inventory = () => {
                 </div>
               )}
 
-              {/* Item Icon */}
+              {/* Item Image or Icon */}
               <div
                 style={{
-                  fontSize: '48px',
                   textAlign: 'center',
                   marginBottom: '0.5rem',
+                  height: '80px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
-                {getItemIcon(invItem.item.type)}
+                {invItem.item.imageUrl ? (
+                  <img
+                    src={invItem.item.imageUrl}
+                    alt={invItem.item.name}
+                    style={{
+                      maxWidth: '80px',
+                      maxHeight: '80px',
+                      objectFit: 'contain',
+                    }}
+                  />
+                ) : (
+                  <div style={{ fontSize: '48px' }}>
+                    {getItemIcon(invItem.item.type)}
+                  </div>
+                )}
               </div>
 
               {/* Item Name */}
@@ -359,24 +378,12 @@ const Inventory = () => {
                 style={{
                   fontSize: '14px',
                   fontWeight: 'bold',
-                  color: getRarityColor(invItem.item.rarity),
+                  color: '#fff',
                   textAlign: 'center',
                   marginBottom: '0.25rem',
                 }}
               >
                 {invItem.item.name}
-              </div>
-
-              {/* Rarity */}
-              <div
-                style={{
-                  fontSize: '11px',
-                  color: '#888',
-                  textAlign: 'center',
-                  textTransform: 'uppercase',
-                }}
-              >
-                {invItem.item.rarity}
               </div>
             </div>
           ))}
@@ -434,8 +441,9 @@ const ItemDetailModal = ({
     sellPrice: number
   }
 }) => {
-  const { marketValue, sellPrice, isUsable, isTradeable, isEquippable } = getItemDefaults(item)
-  
+  const { marketValue, sellPrice, isUsable, isTradeable, isEquippable } =
+    getItemDefaults(item)
+
   return (
     <div
       onClick={onClose}
@@ -458,7 +466,7 @@ const ItemDetailModal = ({
         style={{
           backgroundColor: '#1a1a1a',
           borderRadius: '12px',
-          border: `3px solid ${getRarityColor(item.item.rarity)}`,
+          border: '3px solid #333',
           padding: '2rem',
           maxWidth: '500px',
           width: '100%',
@@ -468,13 +476,36 @@ const ItemDetailModal = ({
       >
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ fontSize: '64px', marginBottom: '1rem' }}>
-            {getItemIcon(item.item.type)}
+          {/* Item Image or Icon */}
+          <div
+            style={{
+              marginBottom: '1rem',
+              height: '120px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {item.item.imageUrl ? (
+              <img
+                src={item.item.imageUrl}
+                alt={item.item.name}
+                style={{
+                  maxWidth: '120px',
+                  maxHeight: '120px',
+                  objectFit: 'contain',
+                }}
+              />
+            ) : (
+              <div style={{ fontSize: '64px' }}>
+                {getItemIcon(item.item.type)}
+              </div>
+            )}
           </div>
           <h2
             style={{
               fontSize: '24px',
-              color: getRarityColor(item.item.rarity),
+              color: '#fff',
               marginBottom: '0.5rem',
             }}
           >
@@ -488,7 +519,7 @@ const ItemDetailModal = ({
               letterSpacing: '1px',
             }}
           >
-            {item.item.rarity} {item.item.type}
+            {item.item.type}
           </div>
         </div>
 
@@ -617,10 +648,7 @@ const ItemDetailModal = ({
             value={`$${sellPrice.toLocaleString()}`}
           />
           <InfoBox label="Quantity" value={item.quantity.toString()} />
-          <InfoBox
-            label="Tradeable"
-            value={isTradeable ? 'Yes' : 'No'}
-          />
+          <InfoBox label="Tradeable" value={isTradeable ? 'Yes' : 'No'} />
         </div>
 
         {/* Action Buttons */}
@@ -648,7 +676,7 @@ const ItemDetailModal = ({
                 (e.currentTarget.style.backgroundColor = '#4CAF50')
               }
             >
-              💊 Use Item
+              Use Item
             </button>
           )}
 

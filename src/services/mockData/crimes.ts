@@ -9,6 +9,7 @@ export const mockCrimes: Crime[] = [
     name: 'Scavenge Space Debris',
     description:
       'Float through abandoned sectors looking for salvageable parts. Dirty work in zero-g.',
+    location: 'orbital',
     heartRateCost: 5,
     energyCost: 2,
     requiredLevel: 0,
@@ -36,6 +37,7 @@ export const mockCrimes: Crime[] = [
     name: 'Panhandle at Docks',
     description:
       'Beg for credits at the spaceport. Not glamorous, but everyone starts somewhere.',
+    location: 'docked',
     heartRateCost: 5,
     energyCost: 2,
     requiredLevel: 0,
@@ -49,6 +51,7 @@ export const mockCrimes: Crime[] = [
     name: 'Steal Food Rations',
     description:
       'Swipe protein bars and nutrient packs from supply crates in the cargo bay.',
+    location: 'docked',
     heartRateCost: 8,
     energyCost: 4,
     requiredLevel: 1,
@@ -70,6 +73,7 @@ export const mockCrimes: Crime[] = [
     name: 'Pickpocket Tourist',
     description:
       'Lift credit chips from distracted tourists at observation decks. Quick fingers required.',
+    location: 'docked',
     heartRateCost: 10,
     energyCost: 5,
     requiredLevel: 1,
@@ -81,7 +85,9 @@ export const mockCrimes: Crime[] = [
   {
     id: 'steal_shipment',
     name: 'Steal Small Shipment',
-    description: 'Grab unattended cargo from loading docks before anyone notices.',
+    description:
+      'Grab unattended cargo from loading docks before anyone notices.',
+    location: 'docked',
     heartRateCost: 10,
     energyCost: 5,
     requiredLevel: 2,
@@ -104,6 +110,7 @@ export const mockCrimes: Crime[] = [
     id: 'mug_worker',
     name: 'Mug Station Worker',
     description: 'Rob someone in the maintenance tunnels. Intimidation is key.',
+    location: 'docked',
     heartRateCost: 14,
     energyCost: 6,
     requiredLevel: 3,
@@ -116,6 +123,7 @@ export const mockCrimes: Crime[] = [
     id: 'steal_speeder',
     name: 'Steal Hover Speeder',
     description: 'Hotwire a personal transport and sell it for parts.',
+    location: 'docked',
     heartRateCost: 15,
     energyCost: 6,
     requiredLevel: 7,
@@ -136,6 +144,7 @@ export const mockCrimes: Crime[] = [
     id: 'break_ship_window',
     name: 'Break Into Docked Ship',
     description: 'Smash viewports and grab valuables from parked shuttles.',
+    location: 'docked',
     heartRateCost: 18,
     energyCost: 6,
     requiredLevel: 8,
@@ -163,6 +172,7 @@ export const mockCrimes: Crime[] = [
     name: 'Steal Tech Equipment',
     description:
       'Lift valuable electronics from tech shops. High risk, higher reward.',
+    location: 'docked',
     heartRateCost: 10,
     energyCost: 6,
     requiredLevel: 9,
@@ -186,6 +196,7 @@ export const mockCrimes: Crime[] = [
     name: 'Burgle Living Quarters',
     description:
       'Break into residential modules and steal valuables. Watch for security drones.',
+    location: 'docked',
     heartRateCost: 20,
     energyCost: 8,
     requiredLevel: 11,
@@ -212,7 +223,8 @@ export const mockCrimes: Crime[] = [
     id: 'steal_shuttle',
     name: 'Steal Personal Shuttle',
     description:
-      "Hijack a small spacecraft. Need to know bypass codes and flight systems.",
+      'Hijack a small spacecraft. Need to know bypass codes and flight systems.',
+    location: 'orbital',
     heartRateCost: 18,
     energyCost: 8,
     requiredLevel: 13,
@@ -224,7 +236,9 @@ export const mockCrimes: Crime[] = [
   {
     id: 'rob_fuel_station',
     name: 'Rob Fuel Station',
-    description: 'Armed robbery of a refueling depot. Dangerous but profitable.',
+    description:
+      'Armed robbery of a refueling depot. Dangerous but profitable.',
+    location: 'docked',
     heartRateCost: 25,
     energyCost: 10,
     requiredLevel: 15,
@@ -242,6 +256,7 @@ export const mockCrimes: Crime[] = [
     id: 'steal_cargo_ship',
     name: 'Hijack Cargo Ship',
     description: 'Commandeer a small freight vessel and sell it to pirates.',
+    location: 'orbital',
     heartRateCost: 26,
     energyCost: 10,
     requiredLevel: 16,
@@ -255,6 +270,7 @@ export const mockCrimes: Crime[] = [
     name: 'Rob Luxury Jeweler',
     description:
       'Hit a high-end jewelry shop on the promenade. Security is tight, but the payoff is worth it.',
+    location: 'docked',
     heartRateCost: 24,
     energyCost: 9,
     requiredLevel: 18,
@@ -276,6 +292,7 @@ export const mockCrimes: Crime[] = [
     name: 'Smuggle Contraband',
     description:
       'Transport illegal substances through customs checkpoints. High profit, high heat.',
+    location: 'orbital',
     heartRateCost: 25,
     energyCost: 8,
     requiredLevel: 20,
@@ -289,7 +306,9 @@ export const mockCrimes: Crime[] = [
   {
     id: 'blackmail_executive',
     name: 'Blackmail Corporate Executive',
-    description: 'Extort credits from a corpo exec with compromising data files.',
+    description:
+      'Extort credits from a corpo exec with compromising data files.',
+    location: 'both',
     heartRateCost: 20,
     energyCost: 10,
     requiredLevel: 22,
@@ -301,7 +320,9 @@ export const mockCrimes: Crime[] = [
   {
     id: 'armed_robbery_casino',
     name: 'Rob Luxury Casino',
-    description: "Hit a high-stakes gambling den with heavy firepower. Don't get caught.",
+    description:
+      "Hit a high-stakes gambling den with heavy firepower. Don't get caught.",
+    location: 'docked',
     heartRateCost: 28,
     energyCost: 14,
     requiredLevel: 24,
@@ -320,6 +341,7 @@ export const mockCrimes: Crime[] = [
     name: 'Hijack Supply Freighter',
     description:
       'Board and steal an entire cargo freighter full of goods. Big score if you pull it off.',
+    location: 'orbital',
     heartRateCost: 30,
     energyCost: 15,
     requiredLevel: 26,
@@ -331,7 +353,9 @@ export const mockCrimes: Crime[] = [
   {
     id: 'rob_district_bank',
     name: 'Rob District Bank',
-    description: 'Plan and execute a bank heist in the financial sector. This is the big leagues.',
+    description:
+      'Plan and execute a bank heist in the financial sector. This is the big leagues.',
+    location: 'docked',
     heartRateCost: 35,
     energyCost: 16,
     requiredLevel: 28,
@@ -346,7 +370,9 @@ export const mockCrimes: Crime[] = [
   {
     id: 'steal_artifact',
     name: 'Steal Ancient Artifact',
-    description: 'Heist a priceless alien relic from a museum or private vault.',
+    description:
+      'Heist a priceless alien relic from a museum or private vault.',
+    location: 'docked',
     heartRateCost: 35,
     energyCost: 16,
     requiredLevel: 32,
@@ -359,7 +385,9 @@ export const mockCrimes: Crime[] = [
   {
     id: 'assassinate_target',
     name: 'Assassinate VIP Target',
-    description: 'Eliminate a high-value corporate or political target. No witnesses, no trace.',
+    description:
+      'Eliminate a high-value corporate or political target. No witnesses, no trace.',
+    location: 'both',
     heartRateCost: 28,
     energyCost: 18,
     requiredLevel: 35,
@@ -377,6 +405,7 @@ export const mockCrimes: Crime[] = [
     name: 'Heist Military Transport',
     description:
       'The ultimate score. Intercept a military convoy and steal classified tech and credits.',
+    location: 'orbital',
     heartRateCost: 36,
     energyCost: 18,
     requiredLevel: 40,
@@ -392,7 +421,8 @@ export const mockCrimes: Crime[] = [
     id: 'hack_corpo_mainframe',
     name: 'Hack Corporate Mainframe',
     description:
-      'Infiltrate a mega-corporation\'s network and siphon credits directly from their accounts.',
+      "Infiltrate a mega-corporation's network and siphon credits directly from their accounts.",
+    location: 'both',
     heartRateCost: 22,
     energyCost: 12,
     requiredLevel: 25,
@@ -414,7 +444,8 @@ export const mockCrimes: Crime[] = [
     id: 'sabotage_competitor',
     name: 'Sabotage Rival Operation',
     description:
-      'Destroy a competitor\'s operations for a paying client. Corporate warfare at its finest.',
+      "Destroy a competitor's operations for a paying client. Corporate warfare at its finest.",
+    location: 'both',
     heartRateCost: 30,
     energyCost: 14,
     requiredLevel: 30,
@@ -429,6 +460,7 @@ export const mockCrimes: Crime[] = [
     name: 'Steal Quantum Core',
     description:
       'Heist a quantum computing core from a research facility. Extremely valuable, extremely dangerous.',
+    location: 'docked',
     heartRateCost: 38,
     energyCost: 20,
     requiredLevel: 38,
@@ -452,7 +484,7 @@ const successMessages = [
   'Mission accomplished! You slipped away undetected.',
   'Perfect execution! Security never saw you coming.',
   "Clean getaway through the maintenance tunnels. You're a natural.",
-  'Flawless operation! The station\'s security AI didn\'t even log your presence.',
+  "Flawless operation! The station's security AI didn't even log your presence.",
   "Smooth as a vacuum. You're getting good at this.",
   'Job done. No alarms, no witnesses, no problems.',
   'You vanished into the crowd before anyone knew what happened.',
@@ -542,7 +574,7 @@ export const attemptCrime = (crime: Crime): CrimeResult => {
 }
 
 export const getAvailableCrimes = (userLevel: number): Crime[] => {
-  return mockCrimes.filter((crime) => crime.requiredLevel <= userLevel)
+  return mockCrimes // Return all crimes, let the UI handle level restrictions
 }
 
 export const getCrimeById = (id: string): Crime | undefined => {

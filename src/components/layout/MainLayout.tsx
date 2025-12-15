@@ -1,9 +1,12 @@
 //src/components/layout/MainLayout.tsx
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useContext } from 'react'
 import type { ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useUser } from '../../hooks/useUser'
 import { getTimeOfDay } from '../../utils/timeOfDay'
+import { NotificationModal } from '../NotificationModal'
+import { MessageModal } from '../MessageModal'
+import { MessageContext } from '../../context/messageCore'
 
 interface StatBarProps {
   label: string
@@ -186,6 +189,7 @@ const navItems = [
     path: '/combat',
     icon: '⚔️',
   },
+  { name: 'Missions', path: '/missions', icon: '🌐' },
 ]
 
 interface MainLayoutProps {
@@ -198,6 +202,9 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
   const navigate = useNavigate()
   const timeOfDay = getTimeOfDay()
   const [now, setNow] = useState(() => new Date())
+  const [notificationModalOpen, setNotificationModalOpen] = useState(false)
+  const [messageModalOpen, setMessageModalOpen] = useState(false)
+  const messageContext = useContext(MessageContext)
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000)
@@ -232,15 +239,20 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
         }
         
         body {
-          background: #000;
+          background: #0f0f0fff;
           font-family: 'Verdana', 'Arial', sans-serif;
           color: #6ba3bf;
           overflow-x: hidden;
         }
 
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.1); }
+        }
+
         .layout-container {
           min-height: 100vh;
-          background: url('/images/spacebg.gif') center/cover fixed;
+          background: url('/images/dashboard-bg.jpg') center/cover fixed;
           padding: 20px;
         }
 
@@ -503,136 +515,290 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
       `}</style>
 
       <div className="layout-container">
-        <div className="game-wrapper">
-          {/* Top Header */}
-          <div className="top-header">
-            <div className="top-header-content">
-              <div className="logo-section">
-                <div>
-                  <div className="logo">ASTRAL</div>
-                  <div className="logo-sub">DISTRICT</div>
+        <div
+          style={{ position: 'relative', maxWidth: '1200px', margin: '0 auto' }}
+        >
+          {/* Left Side Buttons */}
+          <div
+            style={{
+              position: 'absolute',
+              left: '5px',
+              top: '140px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+              zIndex: 1000,
+            }}
+          >
+            <button
+              onClick={() => setNotificationModalOpen(true)}
+              style={{
+                background: 'rgba(30, 77, 122, 0.8)',
+                border: '2px solid rgba(74, 158, 255, 0.6)',
+                borderRadius: '8px',
+                padding: '12px',
+                color: '#4a9eff',
+                cursor: 'pointer',
+                fontSize: '24px',
+                transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
+                minWidth: '50px',
+                minHeight: '50px',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(74, 158, 255, 0.3)'
+                e.currentTarget.style.borderColor = '#4a9eff'
+                e.currentTarget.style.transform = 'scale(1.1)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(30, 77, 122, 0.8)'
+                e.currentTarget.style.borderColor = 'rgba(74, 158, 255, 0.6)'
+                e.currentTarget.style.transform = 'scale(1)'
+              }}
+              title="Notifications"
+            >
+              🔔
+            </button>
+            <button
+              data-messages-button
+              onClick={() => setMessageModalOpen(true)}
+              style={{
+                background: 'rgba(30, 77, 122, 0.8)',
+                border: '2px solid rgba(74, 158, 255, 0.6)',
+                borderRadius: '8px',
+                padding: '12px',
+                color: '#4a9eff',
+                cursor: 'pointer',
+                fontSize: '24px',
+                transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
+                minWidth: '50px',
+                minHeight: '50px',
+                position: 'relative',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(74, 158, 255, 0.3)'
+                e.currentTarget.style.borderColor = '#4a9eff'
+                e.currentTarget.style.transform = 'scale(1.1)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(30, 77, 122, 0.8)'
+                e.currentTarget.style.borderColor = 'rgba(74, 158, 255, 0.6)'
+                e.currentTarget.style.transform = 'scale(1)'
+              }}
+              title="Messages"
+            >
+              📬
+              {/* Message badge - show when there are unread messages */}
+              {messageContext && messageContext.unreadCount > 0 && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '-8px',
+                    right: '-8px',
+                    background: '#ef4444',
+                    color: '#fff',
+                    borderRadius: '50%',
+                    width: '24px',
+                    height: '24px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    border: '2px solid #0a1929',
+                    boxShadow: '0 0 10px rgba(239, 68, 68, 0.5)',
+                    animation: 'pulse 2s ease-in-out infinite',
+                  }}
+                >
+                  {messageContext.unreadCount}
                 </div>
-              </div>
-
-              <div className="player-info">
-                <div className="info-badge">
-                  {timeOfDay === 'night' ? '🌙' : '☀️'}{' '}
-                  {now.toLocaleTimeString()}
-                </div>
-                {user && (
-                  <>
-                    <div className="info-badge">Lv.{user.level}</div>
-                    <XPBar
-                      current={user.experience}
-                      required={user.experienceToNext}
-                      level={user.level}
-                    />
-                    <div className="info-badge player-name">
-                      {user.username}
-                    </div>
-                    <div className="info-badge money-badge">
-                      ${user.money.toLocaleString()}
-                    </div>
-                    <div className="info-badge">
-                      📍 {user.location.toUpperCase()}
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
+              )}
+            </button>
           </div>
 
-          {/* Resources Bar */}
-          {user && (
-            <div className="resources-bar">
-              <div className="resources-content">
-                <StatBar
-                  label="Health"
-                  current={user.health}
-                  max={user.maxHealth}
-                  color="#38bdf8"
-                  icon={<img src="images/icons/health.png" alt="Health" />}
-                />
-                <StatBar
-                  label="Energy"
-                  current={user.energy}
-                  max={user.maxEnergy}
-                  color="#22c55e"
-                  icon={<img src="images/icons/energy.png" alt="Energy" />}
-                />
-                <StatBar
-                  label="Heartrate"
-                  current={user.heartRate}
-                  max={user.maxHeartRate}
-                  color="#fbbf24"
-                  icon={
-                    <img src="images/icons/heartbeat.png" alt="Heart Rate" />
-                  }
-                />
-                <StatBar
-                  label="Heat"
-                  current={user.heat}
-                  max={user.maxHeat}
-                  color="#ef4444"
-                  icon={<img src="images/icons/policeHeat.png" alt="Heat" />}
-                />
+          <div className="game-wrapper">
+            {/* Top Header */}
+            <div className="top-header">
+              <div className="top-header-content">
+                <div className="logo-section">
+                  <div>
+                    <div className="logo">ASTRAL</div>
+                    <div className="logo-sub">DISTRICT</div>
+                  </div>
+                </div>
+
+                <div className="player-info">
+                  <div className="info-badge">
+                    {timeOfDay === 'night' ? '🌙' : '☀️'}{' '}
+                    {now.toLocaleTimeString()}
+                  </div>
+                  {user && (
+                    <>
+                      <div className="info-badge">Lv.{user.level}</div>
+                      <XPBar
+                        current={user.experience}
+                        required={user.experienceToNext}
+                        level={user.level}
+                      />
+                      <div className="info-badge player-name">
+                        {user.username}
+                      </div>
+                      <div className="info-badge money-badge">
+                        ${user.money.toLocaleString()}
+                      </div>
+                      <div className="info-badge">
+                        📍 {user.location.toUpperCase()}
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
-          )}
 
-          {/* Main Navigation */}
-          <div className="main-nav">
-            <div className="primary-nav">
-              {navItems.map((item) => {
-                // Block navigation to Shops and Casino if traveling
-                const travelingBlocked =
-                  isTraveling &&
-                  (item.path === '/shops' || item.path === '/casino')
+            {/* Resources Bar */}
+            {user && (
+              <div className="resources-bar">
+                <div className="resources-content">
+                  <StatBar
+                    label="Health"
+                    current={user.health}
+                    max={user.maxHealth}
+                    color="#38bdf8"
+                    icon={<img src="images/icons/health.png" alt="Health" />}
+                  />
+                  <StatBar
+                    label="Energy"
+                    current={user.energy}
+                    max={user.maxEnergy}
+                    color="#22c55e"
+                    icon={<img src="images/icons/energy.png" alt="Energy" />}
+                  />
+                  <StatBar
+                    label="Heartrate"
+                    current={user.heartRate}
+                    max={user.maxHeartRate}
+                    color="#fbbf24"
+                    icon={
+                      <img src="images/icons/heartbeat.png" alt="Heart Rate" />
+                    }
+                  />
+                  <StatBar
+                    label="Heat"
+                    current={user.heat}
+                    max={user.maxHeat}
+                    color="#ef4444"
+                    icon={<img src="images/icons/policeHeat.png" alt="Heat" />}
+                  />
+                </div>
+              </div>
+            )}
 
-                // Additional gating: while in jail/hospital only allow Home + Items + own state page
-                const jailWhitelist = ['/', '/inventory', '/jail']
-                const hospitalWhitelist = ['/', '/inventory', '/hospital']
-                const jailBlocked =
-                  isInJail && !jailWhitelist.includes(item.path)
-                const hospitalBlocked =
-                  isInHospital && !hospitalWhitelist.includes(item.path)
+            {/* Main Navigation */}
+            <div className="main-nav">
+              <div className="primary-nav">
+                {navItems.map((item) => {
+                  // Block navigation to Shops and Casino if traveling
+                  const travelingBlocked =
+                    isTraveling &&
+                    (item.path === '/shops' || item.path === '/casino')
 
-                const isBlocked =
-                  travelingBlocked || jailBlocked || hospitalBlocked
+                  // Block StarGate if docked (must undock first)
+                  const dockedBlocked =
+                    user?.isDocked && item.path === '/stargate'
 
-                return isBlocked ? (
-                  <span
-                    key={item.path}
-                    className="nav-item nav-item--disabled"
-                    style={{
-                      opacity: 0.5,
-                      pointerEvents: 'none',
-                      cursor: 'not-allowed',
-                    }}
-                  >
-                    <span className="nav-icon">{item.icon}</span>
-                    <span>{item.name}</span>
-                  </span>
-                ) : (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`nav-item ${
-                      isActive(item.path) ? 'active' : ''
-                    }`}
-                  >
-                    <span className="nav-icon">{item.icon}</span>
-                    <span>{item.name}</span>
-                  </Link>
-                )
-              })}
+                  // Block shops, hospital, jail, and city if not docked
+                  const orbitalBlocked =
+                    !user?.isDocked &&
+                    (item.path === '/shops' ||
+                      item.path === '/hospital' ||
+                      item.path === '/jail' ||
+                      item.path === '/city')
+
+                  // Block everything except dashboard if docking/undocking
+                  const dockingBlocked =
+                    user?.isDocking && item.path !== '/dashboard'
+
+                  // Additional gating: while in jail/hospital only allow Home + Items + own state page
+                  const jailWhitelist = ['/', '/inventory', '/jail']
+                  const hospitalWhitelist = ['/', '/inventory', '/hospital']
+                  const jailBlocked =
+                    isInJail && !jailWhitelist.includes(item.path)
+                  const hospitalBlocked =
+                    isInHospital && !hospitalWhitelist.includes(item.path)
+
+                  const isBlocked =
+                    travelingBlocked ||
+                    jailBlocked ||
+                    hospitalBlocked ||
+                    dockedBlocked ||
+                    orbitalBlocked ||
+                    dockingBlocked
+
+                  return isBlocked ? (
+                    <span
+                      key={item.path}
+                      className="nav-item nav-item--disabled"
+                      style={{
+                        opacity: 0.5,
+                        pointerEvents: 'none',
+                        cursor: 'not-allowed',
+                      }}
+                    >
+                      <span className="nav-icon">{item.icon}</span>
+                      <span>{item.name}</span>
+                    </span>
+                  ) : (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={`nav-item ${
+                        isActive(item.path) ? 'active' : ''
+                      }`}
+                      onClick={(e) => {
+                        // Prevent navigation if already on the current page
+                        if (isActive(item.path)) {
+                          e.preventDefault()
+                        }
+                        // Prevent Home (/) navigation when docked - would just redirect to dashboard
+                        if (item.path === '/' && user?.isDocked) {
+                          e.preventDefault()
+                          // Navigate to dashboard instead
+                          if (location.pathname !== '/dashboard') {
+                            navigate('/dashboard')
+                          }
+                        }
+                      }}
+                    >
+                      <span className="nav-icon">{item.icon}</span>
+                      <span>{item.name}</span>
+                    </Link>
+                  )
+                })}
+              </div>
             </div>
-          </div>
 
-          {/* Main Content */}
-          <div className="main-content">{children}</div>
+            {/* Main Content */}
+            <div className="main-content">{children}</div>
+          </div>
         </div>
       </div>
+
+      {/* Notification Modal */}
+      <NotificationModal
+        isOpen={notificationModalOpen}
+        onClose={() => setNotificationModalOpen(false)}
+      />
+      <MessageModal
+        isOpen={messageModalOpen}
+        onClose={() => setMessageModalOpen(false)}
+      />
     </>
   )
 }

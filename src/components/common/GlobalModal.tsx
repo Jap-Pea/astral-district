@@ -61,7 +61,7 @@ export const GlobalModal = () => {
           right: 0,
           bottom: 0,
           backgroundColor: 'rgba(0, 0, 0, 0.7)',
-          zIndex: 999,
+          zIndex: 99999,
         }}
       />
 
@@ -78,7 +78,7 @@ export const GlobalModal = () => {
           maxWidth: '500px',
           width: '90%',
           boxShadow: `0 0 20px ${iconColor}40`,
-          zIndex: 1000,
+          zIndex: 100000,
         }}
       >
         <div

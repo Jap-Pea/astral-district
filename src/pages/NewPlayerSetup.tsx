@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react'
+import { TechLoader } from '../components/TechLoader'
+import GlitchButton from '../components/ui/GlitchButton'
 
 export type RaceKey = 'human' | 'gleek' | 'ortanz'
 export type GenderKey = 'male' | 'female'
@@ -48,7 +50,7 @@ export default function NewPlayerSetup({
   initialUsername?: string
 }) {
   const [stage, setStage] = useState<
-    'splash' | 'astral' | 'intro' | 'loading' | 'setup'
+    'splash' | 'astral' | 'intro' | 'setup' | 'loading'
   >('splash')
   const [loadingIndex, setLoadingIndex] = useState(0)
   const [showIntroButton, setShowIntroButton] = useState(false)
@@ -97,7 +99,6 @@ export default function NewPlayerSetup({
       label: string
       description: string
       lore: string
-      icon: string
       color: string
       perks: (stats: typeof BASE_STATS) => Record<string, number>
     }
@@ -106,7 +107,6 @@ export default function NewPlayerSetup({
       label: 'Human',
       description: 'Balanced and adaptable survivors',
       lore: 'Humans are the most common species in the Astral District. Their adaptability and determination make them formidable in any situation.',
-      icon: '👤',
       color: '#6b7280',
       perks: (s) => ({
         maxHealth: s.health,
@@ -119,26 +119,24 @@ export default function NewPlayerSetup({
       label: 'Gleek',
       description: 'Agile warriors with enhanced reflexes',
       lore: 'Gleeks are known for their lightning-fast movements and precision. Their cybernetic enhancements grant superior combat capabilities.',
-      icon: '⚔️',
       color: '#8b5cf6',
-      perks: (s) => ({
-        maxHealth: s.health,
-        strength: Math.round(s.strength * 1.03),
-        dexterity: Math.round(s.dexterity * 1.05),
-        defense: s.defense,
+      perks: () => ({
+        maxHealth: 85,
+        strength: 1.5,
+        dexterity: 1.2,
+        defense: 0.7,
       }),
     },
     ortanz: {
       label: 'Ortanz',
       description: 'Resilient giants with unmatched endurance',
       lore: 'Ortanz possess thick bio-armor and regenerative capabilities. They can withstand punishment that would kill lesser beings.',
-      icon: '🛡️',
       color: '#ef4444',
-      perks: (s) => ({
-        maxHealth: Math.round(s.health * 1.3),
-        strength: s.strength,
-        dexterity: s.dexterity,
-        defense: Math.round(s.defense * 1.1),
+      perks: () => ({
+        maxHealth: 120,
+        strength: 0.8,
+        dexterity: 0.8,
+        defense: 1.5,
       }),
     },
   }
@@ -180,14 +178,25 @@ export default function NewPlayerSetup({
     }
   }, [stage])
 
-  // Loading screen progression
+  // Loading screen progression (after character setup)
   useEffect(() => {
     if (stage !== 'loading') return
 
     const interval = setInterval(() => {
       setLoadingIndex((prev) => {
         if (prev >= LOADING_SCREENS.length - 1) {
-          setStage('setup')
+          // After loading screens complete, call onComplete with character data
+          if (race && gender) {
+            const perks = RACES[race].perks(BASE_STATS)
+            const result: NewPlayerResult = {
+              username: username.trim(),
+              race,
+              gender,
+              perks,
+              profilePic: getRaceImage(race, gender),
+            }
+            setTimeout(() => onComplete(result), 500) // Small delay before transitioning
+          }
           return prev
         }
         return prev + 1
@@ -195,7 +204,8 @@ export default function NewPlayerSetup({
     }, 2500)
 
     return () => clearInterval(interval)
-  }, [stage])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage, race, gender, username, onComplete])
 
   function validate() {
     if (!username || username.trim().length < 2) {
@@ -221,17 +231,9 @@ export default function NewPlayerSetup({
     e?.preventDefault()
     if (!validate() || !race || !gender) return
 
-    const perks = RACES[race].perks(BASE_STATS)
-
-    const result: NewPlayerResult = {
-      username: username.trim(),
-      race,
-      gender,
-      perks,
-      profilePic: getRaceImage(race, gender),
-    }
-
-    onComplete(result)
+    // Start loading screens, will call onComplete after they finish
+    setLoadingIndex(0)
+    setStage('loading')
   }
 
   function renderPreview() {
@@ -271,22 +273,18 @@ export default function NewPlayerSetup({
             {
               label: 'Health',
               value: perks ? perks.maxHealth : BASE_STATS.health,
-              icon: '❤️',
             },
             {
               label: 'Strength',
               value: perks ? perks.strength : BASE_STATS.strength,
-              icon: '💪',
             },
             {
               label: 'Dexterity',
               value: perks ? perks.dexterity : BASE_STATS.dexterity,
-              icon: '🎯',
             },
             {
               label: 'Defense',
               value: perks ? perks.defense : BASE_STATS.defense,
-              icon: '🛡️',
             },
           ].map((stat) => (
             <div
@@ -299,9 +297,6 @@ export default function NewPlayerSetup({
                 border: '1px solid rgba(255, 255, 255, 0.1)',
               }}
             >
-              <div style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>
-                {stat.icon}
-              </div>
               <div
                 style={{
                   fontSize: '0.7rem',
@@ -432,6 +427,8 @@ export default function NewPlayerSetup({
   // Loading Screen
   if (stage === 'loading') {
     const currentScreen = LOADING_SCREENS[loadingIndex]
+    const progress = ((loadingIndex + 1) / LOADING_SCREENS.length) * 100
+
     return (
       <div
         style={{
@@ -440,109 +437,15 @@ export default function NewPlayerSetup({
           alignItems: 'center',
           justifyContent: 'center',
           background: '#000000',
-          padding: '2rem',
-          animation: 'fadeIn 0.5s ease-out',
+          position: 'relative',
         }}
       >
-        <style>{`
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-          @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-          }
-          @keyframes slideIn {
-            from { transform: translateX(-20px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-          }
-          @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-        `}</style>
-        <div
-          style={{
-            maxWidth: '600px',
-            width: '100%',
-            padding: '3rem',
-            background:
-              'linear-gradient(135deg, rgba(10, 37, 64, 0.95), rgba(6, 24, 41, 0.95))',
-            border: '2px solid #1e4d7a',
-            borderRadius: '1rem',
-            textAlign: 'center',
-            color: 'white',
-            animation: 'slideUp 0.8s ease-out',
-            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.9)',
-          }}
-        >
-          <div
-            style={{
-              fontSize: '5rem',
-              marginBottom: '1.5rem',
-              animation: 'pulse 2s ease-in-out infinite',
-              filter: 'drop-shadow(0 0 20px rgba(74, 158, 255, 0.5))',
-            }}
-          >
-            {currentScreen.icon}
-          </div>
-          <h1
-            style={{
-              fontSize: '2.5rem',
-              fontWeight: 'bold',
-              marginBottom: '1rem',
-              textShadow: '0 0 20px rgba(74, 158, 255, 0.5)',
-              color: '#4a9eff',
-            }}
-          >
-            {currentScreen.title}
-          </h1>
-          <p
-            style={{
-              fontSize: '1.2rem',
-              opacity: 0.9,
-              marginBottom: '2.5rem',
-              color: '#8ab4cf',
-            }}
-          >
-            {currentScreen.subtitle}
-          </p>
-          <div
-            style={{
-              width: '100%',
-              maxWidth: '400px',
-              height: '6px',
-              background: 'rgba(74, 158, 255, 0.2)',
-              borderRadius: '3px',
-              overflow: 'hidden',
-              margin: '0 auto',
-              border: '1px solid rgba(74, 158, 255, 0.3)',
-            }}
-          >
-            <div
-              style={{
-                height: '100%',
-                background: 'linear-gradient(90deg, #4a9eff, #8b5cf6)',
-                width: `${
-                  ((loadingIndex + 1) / LOADING_SCREENS.length) * 100
-                }%`,
-                transition: 'width 0.5s ease-out',
-                boxShadow: '0 0 15px rgba(74, 158, 255, 0.8)',
-              }}
-            />
-          </div>
-          <div
-            style={{
-              marginTop: '1rem',
-              fontSize: '0.9rem',
-              color: '#6ba3bf',
-              opacity: 0.8,
-            }}
-          >
-            {loadingIndex + 1} / {LOADING_SCREENS.length}
-          </div>
-        </div>
+        {/* Tech Loader with embedded text */}
+        <TechLoader
+          title={currentScreen.title}
+          subtitle={currentScreen.subtitle}
+          progress={progress}
+        />
       </div>
     )
   }
@@ -578,74 +481,22 @@ export default function NewPlayerSetup({
             from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
           }
-          
-          .sci-fi-frame {
-            position: relative;
-          }
-          
-          .sci-fi-frame::before,
-          .sci-fi-frame::after,
-          .sci-fi-frame .corner-tl,
-          .sci-fi-frame .corner-tr,
-          .sci-fi-frame .corner-bl,
-          .sci-fi-frame .corner-br {
-            content: '';
-            position: absolute;
-            width: 50px;
-            height: 50px;
-            border: 3px solid #8b7355;
-          }
-          
-          .sci-fi-frame::before {
-            top: -3px;
-            left: -3px;
-            border-right: none;
-            border-bottom: none;
-            border-top-left-radius: 5px;
-          }
-          
-          .sci-fi-frame::after {
-            top: -3px;
-            right: -3px;
-            border-left: none;
-            border-bottom: none;
-            border-top-right-radius: 5px;
-          }
-          
-          .corner-bl {
-            bottom: -3px;
-            left: -3px;
-            border-right: none;
-            border-top: none;
-            border-bottom-left-radius: 5px;
-          }
-          
-          .corner-br {
-            bottom: -3px;
-            right: -3px;
-            border-left: none;
-            border-top: none;
-            border-bottom-right-radius: 5px;
-          }
         `}</style>
         <div
-          className="sci-fi-frame"
           style={{
             maxWidth: '800px',
             width: '100%',
             padding: '3rem',
             background:
               'linear-gradient(135deg, rgba(10, 37, 64, 0.95), rgba(6, 24, 41, 0.95))',
-            border: '2px solid #8b7355',
+            border: '2px solid #1e4d7a',
+            borderRadius: '1rem',
             textAlign: 'center',
             color: '#6ba3bf',
             animation: 'slideUp 1s ease-out',
             boxShadow: '0 20px 60px rgba(0, 0, 0, 0.9)',
-            position: 'relative' as const,
           }}
         >
-          <div className="corner-bl"></div>
-          <div className="corner-br"></div>
           <div
             style={{
               fontSize: '2rem',
@@ -684,34 +535,9 @@ export default function NewPlayerSetup({
             )}
           </p>
           {showIntroButton && (
-            <button
-              onClick={() => setStage('loading')}
-              style={{
-                padding: '1rem 3rem',
-                fontSize: '1.3rem',
-                fontWeight: 'bold',
-                background: 'linear-gradient(135deg, #8b5cf6, #6366f1)',
-                border: 'none',
-                borderRadius: '12px',
-                color: 'white',
-                cursor: 'pointer',
-                boxShadow: '0 8px 30px rgba(139, 92, 246, 0.4)',
-                transition: 'all 0.3s ease',
-                animation: 'buttonSlide 0.5s ease-out',
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'translateY(-3px)'
-                e.currentTarget.style.boxShadow =
-                  '0 12px 40px rgba(139, 92, 246, 0.6)'
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.boxShadow =
-                  '0 8px 30px rgba(139, 92, 246, 0.4)'
-              }}
-            >
-              Create Character →
-            </button>
+            <GlitchButton onClick={() => setStage('setup')}>
+              Sign Up
+            </GlitchButton>
           )}
         </div>
       </div>
@@ -976,14 +802,6 @@ export default function NewPlayerSetup({
                     <div style={{ padding: '1.5rem' }}>
                       <div
                         style={{
-                          fontSize: '2rem',
-                          marginBottom: '0.5rem',
-                        }}
-                      >
-                        {meta.icon}
-                      </div>
-                      <div
-                        style={{
                           fontSize: '1.3rem',
                           fontWeight: 'bold',
                           color: active ? meta.color : '#fff',
@@ -1096,33 +914,7 @@ export default function NewPlayerSetup({
               ↻ Reset
             </button>
 
-            <button
-              type="submit"
-              style={{
-                padding: '0.875rem 3rem',
-                fontSize: '1.1rem',
-                fontWeight: 'bold',
-                background: 'linear-gradient(135deg, #22c55e, #16a34a)',
-                border: 'none',
-                borderRadius: '8px',
-                color: 'white',
-                cursor: 'pointer',
-                boxShadow: '0 8px 30px rgba(34, 197, 94, 0.4)',
-                transition: 'all 0.3s ease',
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)'
-                e.currentTarget.style.boxShadow =
-                  '0 12px 40px rgba(34, 197, 94, 0.6)'
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.boxShadow =
-                  '0 8px 30px rgba(34, 197, 94, 0.4)'
-              }}
-            >
-              Begin Journey
-            </button>
+            <GlitchButton type="submit">Begin Journey</GlitchButton>
           </div>
         </form>
       </div>

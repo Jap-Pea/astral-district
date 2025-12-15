@@ -32,7 +32,16 @@ const Crimes = () => {
 
   if (!user) return null
 
-  const availableCrimes = getAvailableCrimes(user.level)
+  const allAvailableCrimes = getAvailableCrimes(user.level)
+
+  // Filter crimes based on docking state
+  const availableCrimes = allAvailableCrimes.filter((crime) => {
+    if (crime.location === 'both') return true
+    if (user.isDocked && crime.location === 'docked') return true
+    if (!user.isDocked && crime.location === 'orbital') return true
+    return false
+  })
+
   const timeOfDay = getTimeOfDay()
 
   const handleCommitCrime = async (crime: Crime) => {
@@ -75,9 +84,40 @@ const Crimes = () => {
           </span>
         </div>
       </div>
-      <p style={{ color: '#888', marginBottom: '2rem' }}>
-        Choose your criminal activity wisely. All crimes cost 10 energy.
+      <p style={{ color: '#888', marginBottom: '1rem' }}>
+        Choose your criminal activity wisely.
       </p>
+
+      {/* Docking Status Info */}
+      <div
+        style={{
+          backgroundColor: user.isDocked ? '#1e40af20' : '#05966920',
+          padding: '0.75rem 1rem',
+          borderRadius: '8px',
+          marginBottom: '1.5rem',
+          border: user.isDocked ? '1px solid #1e40af' : '1px solid #059669',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem',
+        }}
+      >
+        <span style={{ fontSize: '20px' }}>{user.isDocked}</span>
+        <div>
+          <div
+            style={{
+              fontWeight: 'bold',
+              color: user.isDocked ? '#60a5fa' : '#34d399',
+            }}
+          >
+            {user.isDocked ? 'Docked at Station' : 'In Orbit'}
+          </div>
+          <div style={{ fontSize: '0.85rem', color: '#888' }}>
+            {user.isDocked
+              ? 'Ground-based crimes available'
+              : 'Space-based crimes available'}
+          </div>
+        </div>
+      </div>
 
       {/* Current Status Bar */}
       <div
@@ -143,7 +183,7 @@ const Crimes = () => {
             fontSize: '14px',
           }}
         >
-          🚔 <strong>WARNING:</strong> Police are on high alert! High risk of
+          <strong>WARNING:</strong> Police are on high alert! High risk of
           arrest!
         </div>
       )}
@@ -166,11 +206,7 @@ const Crimes = () => {
               color: '#fff',
             }}
           >
-            {result.critical
-              ? '🎉 CRITICAL SUCCESS!'
-              : result.success
-              ? '✅ Success!'
-              : '❌ Failed!'}
+            {result.success ? '✅ Success!' : '❌ Failed!'}
           </h2>
           <p style={{ fontSize: '16px', marginBottom: '1rem', color: '#fff' }}>
             {result.message}
@@ -184,7 +220,7 @@ const Crimes = () => {
                 fontWeight: 'bold',
               }}
             >
-              💔 You lost {result.healthLost} health during the crime!
+              You lost {result.healthLost} health during the crime!
             </div>
           )}
           {result.success && (
@@ -202,7 +238,7 @@ const Crimes = () => {
               </div>
               {result.itemsFound && result.itemsFound.length > 0 && (
                 <div style={{ marginTop: '0.5rem', color: '#FFD700' }}>
-                  📦 Items found:{' '}
+                  Items found:{' '}
                   {result.itemsFound
                     .map((item) => `${item.itemName} x${item.quantity}`)
                     .join(', ')}
@@ -254,6 +290,7 @@ const Crimes = () => {
             onCommit={handleCommitCrime}
             disabled={isCommitting || user.energy < 5}
             userEnergy={user.energy}
+            userLevel={user.level}
             timeOfDay={timeOfDay}
           />
         ))}
@@ -306,15 +343,18 @@ const CrimeCard = ({
   onCommit,
   disabled,
   userEnergy,
+  userLevel,
   timeOfDay,
 }: {
   crime: Crime
   onCommit: (crime: Crime) => void
   disabled: boolean
   userEnergy: number
+  userLevel: number
   timeOfDay: 'day' | 'night'
 }) => {
   const canAfford = userEnergy >= 5
+  const isLocked = userLevel < crime.requiredLevel
   const bonus = getCrimeBonus(crime.id)
   const hasBonus = bonus > 0
 
@@ -336,23 +376,42 @@ const CrimeCard = ({
   return (
     <div
       style={{
-        backgroundColor: '#0f0f0f',
+        backgroundColor: isLocked ? '#1a1a1a' : '#0f0f0f',
         padding: '1.5rem',
         borderRadius: '8px',
-        border: hasBonus
+        border: isLocked
+          ? '2px solid #666'
+          : hasBonus
           ? `2px solid ${timeOfDay === 'night' ? '#5C6BC0' : '#FFA726'}`
           : '1px solid #333',
-        opacity: disabled ? 0.6 : 1,
+        opacity: disabled || isLocked ? 0.6 : 1,
         transition: 'all 0.2s',
         position: 'relative',
+        filter: isLocked ? 'grayscale(0.7)' : 'none',
       }}
     >
+      {isLocked && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            fontSize: '64px',
+            opacity: 0.3,
+            zIndex: 1,
+          }}
+        >
+          🔒
+        </div>
+      )}
+
       <div
         style={{
           position: 'absolute',
           top: '1rem',
           right: '1rem',
-          backgroundColor: getLevelColor(),
+          backgroundColor: isLocked ? '#666' : getLevelColor(),
           color: '#fff',
           padding: '0.25rem 0.75rem',
           borderRadius: '12px',
@@ -360,7 +419,7 @@ const CrimeCard = ({
           fontWeight: 'bold',
         }}
       >
-        LVL {crime.requiredLevel}
+        {isLocked && '🔒 '}LVL {crime.requiredLevel}
       </div>
 
       {hasBonus && (
@@ -433,37 +492,41 @@ const CrimeCard = ({
             display: 'inline-block',
           }}
         >
-          ⏱️ {crime.cooldown / 60} min cooldown
+          {crime.cooldown / 60} min cooldown
         </div>
       )}
 
       <button
-        onClick={() => onCommit(crime)}
-        disabled={disabled}
+        onClick={isLocked ? undefined : () => onCommit(crime)}
+        disabled={disabled || isLocked}
         style={{
           width: '100%',
           padding: '0.75rem',
-          fontSize: '16px',
+          fontSize: isLocked ? '14px' : '16px',
           fontWeight: 'bold',
-          backgroundColor: canAfford ? '#ff4444' : '#555',
-          color: canAfford ? '#fff' : '#888',
-          border: 'none',
+          backgroundColor: isLocked ? '#444' : canAfford ? '#ff4444' : '#555',
+          color: isLocked ? '#aaa' : canAfford ? '#fff' : '#888',
+          border: isLocked ? '2px solid #666' : 'none',
           borderRadius: '4px',
-          cursor: disabled ? 'not-allowed' : 'pointer',
+          cursor: disabled || isLocked ? 'not-allowed' : 'pointer',
           transition: 'all 0.2s',
         }}
         onMouseEnter={(e) => {
-          if (!disabled && canAfford) {
+          if (!disabled && !isLocked && canAfford) {
             e.currentTarget.style.backgroundColor = '#ff6666'
           }
         }}
         onMouseLeave={(e) => {
-          if (!disabled && canAfford) {
+          if (!disabled && !isLocked && canAfford) {
             e.currentTarget.style.backgroundColor = '#ff4444'
           }
         }}
       >
-        {!canAfford ? 'Not Enough Energy' : 'Commit Crime'}
+        {isLocked
+          ? `🔒 LOCKED - LEVEL ${crime.requiredLevel} REQUIRED`
+          : !canAfford
+          ? 'Not Enough Energy'
+          : 'Commit Crime'}
       </button>
     </div>
   )

@@ -1,5 +1,5 @@
 // src/pages/LoanShark.tsx
-import React, { useState, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { PageContainer } from '../components/ui/PageContainer'
 import { GlassCard } from '../components/ui/GlassCard'
 import { GradientButton } from '../components/ui/GradientButton'
@@ -11,7 +11,9 @@ const LoanShark: React.FC = () => {
   const [loanAmount, setLoanAmount] = useState<number>(0)
   const [selectedDuration, setSelectedDuration] = useState<number>(7) // days
   const [showConfirm, setShowConfirm] = useState(false)
-  const [loanSharkMood, setLoanSharkMood] = useState<'happy' | 'neutral' | 'angry'>('neutral')
+  const [loanSharkMood, setLoanSharkMood] = useState<
+    'happy' | 'neutral' | 'angry'
+  >('neutral')
   const [currentTime] = useState(() => Date.now())
   const [repayInputs, setRepayInputs] = useState<Record<string, number>>({})
 
@@ -23,7 +25,7 @@ const LoanShark: React.FC = () => {
       paidLate: 0,
       defaulted: 0,
       currentLoans: [],
-      pastLoans: []
+      pastLoans: [],
     }
     return history
   }, [user])
@@ -31,7 +33,7 @@ const LoanShark: React.FC = () => {
   // Calculate credit rating based on history
   const creditRating = useMemo(() => {
     if (loanHistory.totalLoans === 0) return 'New Customer'
-    
+
     const onTimeRate = loanHistory.paidOnTime / loanHistory.totalLoans
     const defaultRate = loanHistory.defaulted / loanHistory.totalLoans
 
@@ -46,45 +48,48 @@ const LoanShark: React.FC = () => {
   // Calculate max loan based on level and credit history
   const maxLoanAmount = useMemo(() => {
     if (!user) return 0
-    
+
     const baseAmount = user.level * 5000 // $5k per level
-    
+
     // Credit multiplier
     const creditMultipliers: Record<string, number> = {
       'New Customer': 1.0,
       'Very Poor': 0.3,
-      'Poor': 0.5,
-      'Fair': 0.8,
-      'Good': 1.2,
-      'Excellent': 1.5
+      Poor: 0.5,
+      Fair: 0.8,
+      Good: 1.2,
+      Excellent: 1.5,
     }
-    
+
     const creditMultiplier = creditMultipliers[creditRating] || 1.0
-    
+
     // Loyalty bonus for repeat customers with good history
     const loyaltyBonus = Math.min(loanHistory.paidOnTime * 1000, 20000)
-    
-    return Math.floor((baseAmount * creditMultiplier) + loyaltyBonus)
+
+    return Math.floor(baseAmount * creditMultiplier + loyaltyBonus)
   }, [user, creditRating, loanHistory])
 
   // Calculate interest rate based on credit and duration
   const interestRate = useMemo(() => {
     const baseRate = 0.15 // 15% base
-    
+
     const creditRateAdjustment: Record<string, number> = {
       'New Customer': 0.05,
       'Very Poor': 0.15,
-      'Poor': 0.10,
-      'Fair': 0.05,
-      'Good': -0.03,
-      'Excellent': -0.05
+      Poor: 0.1,
+      Fair: 0.05,
+      Good: -0.03,
+      Excellent: -0.05,
     }
-    
+
     const durationMultiplier = selectedDuration / 7 // 7 days baseline
-    
-    const rate = baseRate + (creditRateAdjustment[creditRating] || 0) + (durationMultiplier * 0.02)
-    
-    return Math.max(0.05, Math.min(0.50, rate)) // Cap between 5% and 50%
+
+    const rate =
+      baseRate +
+      (creditRateAdjustment[creditRating] || 0) +
+      durationMultiplier * 0.02
+
+    return Math.max(0.05, Math.min(0.5, rate)) // Cap between 5% and 50%
   }, [creditRating, selectedDuration])
 
   const totalOwed = useMemo(() => {
@@ -100,7 +105,7 @@ const LoanShark: React.FC = () => {
 
   const takeLoan = () => {
     if (!user || loanAmount <= 0 || loanAmount > maxLoanAmount) return
-    
+
     const newLoan: Loan = {
       id: `loan_${Date.now()}`,
       amount: loanAmount,
@@ -109,29 +114,29 @@ const LoanShark: React.FC = () => {
       takenAt: new Date(),
       dueDate: new Date(Date.now() + selectedDuration * 24 * 60 * 60 * 1000),
       isPaid: false,
-      wasLate: false
+      wasLate: false,
     }
 
     const updatedHistory: LoanHistory = {
       ...loanHistory,
       totalLoans: loanHistory.totalLoans + 1,
-      currentLoans: [...loanHistory.currentLoans, newLoan]
+      currentLoans: [...loanHistory.currentLoans, newLoan],
     }
 
     addMoney(loanAmount)
     updateUser({ loanHistory: updatedHistory })
-    
+
     setLoanAmount(0)
     setShowConfirm(false)
     setLoanSharkMood('happy')
-    
+
     setTimeout(() => setLoanSharkMood('neutral'), 3000)
   }
 
   const repayLoan = (loanId: string) => {
     if (!user) return
-    
-    const loan = loanHistory.currentLoans.find(l => l.id === loanId)
+
+    const loan = loanHistory.currentLoans.find((l) => l.id === loanId)
     if (!loan) return
 
     const outstanding = getOutstanding(loan)
@@ -149,27 +154,27 @@ const LoanShark: React.FC = () => {
       ...loan,
       isPaid: true,
       paidAt: now,
-      wasLate: wasLate
+      wasLate: wasLate,
     }
 
     const updatedHistory: LoanHistory = {
       ...loanHistory,
-      currentLoans: loanHistory.currentLoans.filter(l => l.id !== loanId),
+      currentLoans: loanHistory.currentLoans.filter((l) => l.id !== loanId),
       pastLoans: [...loanHistory.pastLoans, paidLoan],
       paidOnTime: wasLate ? loanHistory.paidOnTime : loanHistory.paidOnTime + 1,
-      paidLate: wasLate ? loanHistory.paidLate + 1 : loanHistory.paidLate
+      paidLate: wasLate ? loanHistory.paidLate + 1 : loanHistory.paidLate,
     }
 
     spendMoney(outstanding)
     updateUser({ loanHistory: updatedHistory })
-    
+
     setLoanSharkMood(wasLate ? 'neutral' : 'happy')
     setTimeout(() => setLoanSharkMood('neutral'), 3000)
   }
 
   const repayLoanPartial = (loanId: string) => {
     if (!user) return
-    const loan = loanHistory.currentLoans.find(l => l.id === loanId)
+    const loan = loanHistory.currentLoans.find((l) => l.id === loanId)
     if (!loan) return
 
     const raw = repayInputs[loanId] ?? 0
@@ -207,9 +212,11 @@ const LoanShark: React.FC = () => {
 
       const updatedHistory: LoanHistory = {
         ...loanHistory,
-        currentLoans: loanHistory.currentLoans.filter(l => l.id !== loanId),
+        currentLoans: loanHistory.currentLoans.filter((l) => l.id !== loanId),
         pastLoans: [...loanHistory.pastLoans, paidLoan],
-        paidOnTime: wasLate ? loanHistory.paidOnTime : loanHistory.paidOnTime + 1,
+        paidOnTime: wasLate
+          ? loanHistory.paidOnTime
+          : loanHistory.paidOnTime + 1,
         paidLate: wasLate ? loanHistory.paidLate + 1 : loanHistory.paidLate,
       }
 
@@ -223,7 +230,7 @@ const LoanShark: React.FC = () => {
     // Still outstanding: update paidAmount on current loan
     const updatedHistory: LoanHistory = {
       ...loanHistory,
-      currentLoans: loanHistory.currentLoans.map(l =>
+      currentLoans: loanHistory.currentLoans.map((l) =>
         l.id === loanId ? { ...l, paidAmount: newPaid } : l
       ),
     }
@@ -233,12 +240,12 @@ const LoanShark: React.FC = () => {
 
   const getCreditRatingColor = (rating: string) => {
     const colors: Record<string, string> = {
-      'Excellent': '#22c55e',
-      'Good': '#3b82f6',
-      'Fair': '#f59e0b',
-      'Poor': '#ef4444',
+      Excellent: '#22c55e',
+      Good: '#3b82f6',
+      Fair: '#f59e0b',
+      Poor: '#ef4444',
       'Very Poor': '#7f1d1d',
-      'New Customer': '#6b7280'
+      'New Customer': '#6b7280',
     }
     return colors[rating] || '#6b7280'
   }
@@ -248,26 +255,30 @@ const LoanShark: React.FC = () => {
     const images = {
       happy: 'https://placehold.co/400x500/2a5c2a/fff?text=Happy+Shark',
       neutral: 'https://placehold.co/400x500/4a5568/fff?text=Loan+Shark',
-      angry: 'https://placehold.co/400x500/7f1d1d/fff?text=Angry+Shark'
+      angry: 'https://placehold.co/400x500/7f1d1d/fff?text=Angry+Shark',
     }
     return images[loanSharkMood]
   }
 
   const getLoanSharkDialogue = () => {
     if (hasActiveLoan) {
-      return "You still owe me money! Pay up before asking for more."
+      return 'You still owe me money! Pay up before asking for more.'
     }
-    
+
     const dialogues = {
-      'Excellent': "Ah, my favorite customer! Always a pleasure doing business with you.",
-      'Good': "Good to see you again. Your credit's solid, let's talk numbers.",
-      'Fair': "You're not the worst I've dealt with. What do you need?",
-      'Poor': "You're pushing your luck with me. This better be quick.",
-      'Very Poor': "You got some nerve showing your face here...",
-      'New Customer': "New around here? Let me explain how this works..."
+      Excellent:
+        'Ah, my favorite customer! Always a pleasure doing business with you.',
+      Good: "Good to see you again. Your credit's solid, let's talk numbers.",
+      Fair: "You're not the worst I've dealt with. What do you need?",
+      Poor: "You're pushing your luck with me. This better be quick.",
+      'Very Poor': 'You got some nerve showing your face here...',
+      'New Customer': 'New around here? Let me explain how this works...',
     }
-    
-    return dialogues[creditRating as keyof typeof dialogues] || dialogues['New Customer']
+
+    return (
+      dialogues[creditRating as keyof typeof dialogues] ||
+      dialogues['New Customer']
+    )
   }
 
   if (!user) return null
@@ -331,91 +342,136 @@ const LoanShark: React.FC = () => {
       `}</style>
 
       <div className="loan-shark-container">
-        <h1 style={{
-          fontSize: '2.5rem',
-          fontWeight: 'bold',
-          color: '#ef4444',
-          marginBottom: '0.5rem',
-          textShadow: '0 0 20px rgba(239, 68, 68, 0.5)'
-        }}>
+        <h1
+          style={{
+            fontSize: '2.5rem',
+            fontWeight: 'bold',
+            color: '#ef4444',
+            marginBottom: '0.5rem',
+            textShadow: '0 0 20px rgba(239, 68, 68, 0.5)',
+          }}
+        >
           💰 The Loan Shark
         </h1>
-        <p style={{ color: '#6ba3bf', marginBottom: '2rem', fontSize: '1.1rem' }}>
+        <p
+          style={{ color: '#6ba3bf', marginBottom: '2rem', fontSize: '1.1rem' }}
+        >
           Need quick cash? I can help... for a price.
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem', marginBottom: '2rem' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 2fr',
+            gap: '2rem',
+            marginBottom: '2rem',
+          }}
+        >
           {/* Loan Shark Character */}
-          <GlassCard className={loanSharkMood === 'angry' ? 'shake-animation' : ''}>
-            <div style={{
-              width: '100%',
-              height: '500px',
-              borderRadius: '12px',
-              overflow: 'hidden',
-              marginBottom: '1rem',
-              border: '2px solid rgba(239, 68, 68, 0.3)',
-              background: 'rgba(0, 0, 0, 0.3)'
-            }}>
+          <GlassCard
+            className={loanSharkMood === 'angry' ? 'shake-animation' : ''}
+          >
+            <div
+              style={{
+                width: '100%',
+                height: '500px',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                marginBottom: '1rem',
+                border: '2px solid rgba(239, 68, 68, 0.3)',
+                background: 'rgba(0, 0, 0, 0.3)',
+              }}
+            >
               <img
                 src={getLoanSharkImage()}
                 alt="Loan Shark"
                 style={{
                   width: '100%',
                   height: '100%',
-                  objectFit: 'cover'
+                  objectFit: 'cover',
                 }}
               />
             </div>
 
             {/* Dialogue Box */}
-            <div style={{
-              padding: '1.5rem',
-              background: 'rgba(239, 68, 68, 0.1)',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-              borderRadius: '12px',
-              fontStyle: 'italic',
-              color: '#fff',
-              lineHeight: '1.6'
-            }}>
+            <div
+              style={{
+                padding: '1.5rem',
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                borderRadius: '12px',
+                fontStyle: 'italic',
+                color: '#fff',
+                lineHeight: '1.6',
+              }}
+            >
               "{getLoanSharkDialogue()}"
             </div>
 
             {/* Credit Rating */}
-            <div style={{
-              marginTop: '1.5rem',
-              padding: '1rem',
-              background: 'rgba(255, 255, 255, 0.05)',
-              borderRadius: '12px',
-              textAlign: 'center'
-            }}>
-              <div style={{ fontSize: '0.9rem', color: '#6ba3bf', marginBottom: '0.5rem' }}>
+            <div
+              style={{
+                marginTop: '1.5rem',
+                padding: '1rem',
+                background: 'rgba(255, 255, 255, 0.05)',
+                borderRadius: '12px',
+                textAlign: 'center',
+              }}
+            >
+              <div
+                style={{
+                  fontSize: '0.9rem',
+                  color: '#6ba3bf',
+                  marginBottom: '0.5rem',
+                }}
+              >
                 Your Credit Rating
               </div>
-              <div style={{
-                fontSize: '1.8rem',
-                fontWeight: 'bold',
-                color: getCreditRatingColor(creditRating),
-                textShadow: `0 0 10px ${getCreditRatingColor(creditRating)}80`
-              }}>
+              <div
+                style={{
+                  fontSize: '1.8rem',
+                  fontWeight: 'bold',
+                  color: getCreditRatingColor(creditRating),
+                  textShadow: `0 0 10px ${getCreditRatingColor(
+                    creditRating
+                  )}80`,
+                }}
+              >
                 {creditRating}
               </div>
             </div>
           </GlassCard>
 
           {/* Loan Interface */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div
+            style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
+          >
             {/* Stats Overview */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(4, 1fr)',
-              gap: '1rem'
-            }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gap: '1rem',
+              }}
+            >
               <GlassCard>
                 <div style={{ textAlign: 'center', padding: '1rem' }}>
-                  <div style={{ fontSize: '0.8rem', color: '#6ba3bf', marginBottom: '0.5rem' }}>
+                  <div
+                    style={{
+                      fontSize: '0.8rem',
+                      color: '#6ba3bf',
+                      marginBottom: '0.5rem',
+                    }}
+                  >
                     Max Loan
                   </div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#22c55e' }}>
+                  <div
+                    style={{
+                      fontSize: '1.5rem',
+                      fontWeight: 'bold',
+                      color: '#22c55e',
+                    }}
+                  >
                     ${maxLoanAmount.toLocaleString()}
                   </div>
                 </div>
@@ -423,10 +479,22 @@ const LoanShark: React.FC = () => {
 
               <GlassCard>
                 <div style={{ textAlign: 'center', padding: '1rem' }}>
-                  <div style={{ fontSize: '0.8rem', color: '#6ba3bf', marginBottom: '0.5rem' }}>
+                  <div
+                    style={{
+                      fontSize: '0.8rem',
+                      color: '#6ba3bf',
+                      marginBottom: '0.5rem',
+                    }}
+                  >
                     Interest Rate
                   </div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#f59e0b' }}>
+                  <div
+                    style={{
+                      fontSize: '1.5rem',
+                      fontWeight: 'bold',
+                      color: '#f59e0b',
+                    }}
+                  >
                     {(interestRate * 100).toFixed(1)}%
                   </div>
                 </div>
@@ -434,10 +502,22 @@ const LoanShark: React.FC = () => {
 
               <GlassCard>
                 <div style={{ textAlign: 'center', padding: '1rem' }}>
-                  <div style={{ fontSize: '0.8rem', color: '#6ba3bf', marginBottom: '0.5rem' }}>
+                  <div
+                    style={{
+                      fontSize: '0.8rem',
+                      color: '#6ba3bf',
+                      marginBottom: '0.5rem',
+                    }}
+                  >
                     Total Loans
                   </div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#fff' }}>
+                  <div
+                    style={{
+                      fontSize: '1.5rem',
+                      fontWeight: 'bold',
+                      color: '#fff',
+                    }}
+                  >
                     {loanHistory.totalLoans}
                   </div>
                 </div>
@@ -445,13 +525,29 @@ const LoanShark: React.FC = () => {
 
               <GlassCard>
                 <div style={{ textAlign: 'center', padding: '1rem' }}>
-                  <div style={{ fontSize: '0.8rem', color: '#6ba3bf', marginBottom: '0.5rem' }}>
+                  <div
+                    style={{
+                      fontSize: '0.8rem',
+                      color: '#6ba3bf',
+                      marginBottom: '0.5rem',
+                    }}
+                  >
                     On-Time %
                   </div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#3b82f6' }}>
-                    {loanHistory.totalLoans > 0 
-                      ? Math.round((loanHistory.paidOnTime / loanHistory.totalLoans) * 100)
-                      : 0}%
+                  <div
+                    style={{
+                      fontSize: '1.5rem',
+                      fontWeight: 'bold',
+                      color: '#3b82f6',
+                    }}
+                  >
+                    {loanHistory.totalLoans > 0
+                      ? Math.round(
+                          (loanHistory.paidOnTime / loanHistory.totalLoans) *
+                            100
+                        )
+                      : 0}
+                    %
                   </div>
                 </div>
               </GlassCard>
@@ -460,83 +556,134 @@ const LoanShark: React.FC = () => {
             {/* Active Loans */}
             {loanHistory.currentLoans.length > 0 && (
               <GlassCard>
-                <h3 style={{
-                  fontSize: '1.3rem',
-                  fontWeight: 'bold',
-                  marginBottom: '1rem',
-                  color: '#ef4444'
-                }}>
+                <h3
+                  style={{
+                    fontSize: '1.3rem',
+                    fontWeight: 'bold',
+                    marginBottom: '1rem',
+                    color: '#ef4444',
+                  }}
+                >
                   ⚠️ Active Loans
                 </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {loanHistory.currentLoans.map(loan => {
-                    const daysLeft = Math.ceil((loan.dueDate.getTime() - currentTime) / (1000 * 60 * 60 * 24))
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '1rem',
+                  }}
+                >
+                  {loanHistory.currentLoans.map((loan) => {
+                    const daysLeft = Math.ceil(
+                      (loan.dueDate.getTime() - currentTime) /
+                        (1000 * 60 * 60 * 24)
+                    )
                     const isOverdue = daysLeft < 0
-                    
+
                     return (
                       <div
                         key={loan.id}
                         style={{
                           padding: '1.5rem',
-                          background: isOverdue 
-                            ? 'rgba(239, 68, 68, 0.1)' 
+                          background: isOverdue
+                            ? 'rgba(239, 68, 68, 0.1)'
                             : 'rgba(255, 255, 255, 0.05)',
-                          border: isOverdue 
-                            ? '2px solid #ef4444' 
+                          border: isOverdue
+                            ? '2px solid #ef4444'
                             : '1px solid rgba(255, 255, 255, 0.1)',
-                          borderRadius: '12px'
+                          borderRadius: '12px',
                         }}
                       >
-                        <div style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          marginBottom: '1rem'
-                        }}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            marginBottom: '1rem',
+                          }}
+                        >
                           <div>
-                            <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#fff' }}>
+                            <div
+                              style={{
+                                fontSize: '1.2rem',
+                                fontWeight: 'bold',
+                                color: '#fff',
+                              }}
+                            >
                               ${loan.totalOwed.toLocaleString()}
                             </div>
-                            <div style={{ fontSize: '0.9rem', color: '#6ba3bf' }}>
-                              Principal: ${loan.amount.toLocaleString()} + {(loan.interest * 100).toFixed(1)}% interest
+                            <div
+                              style={{ fontSize: '0.9rem', color: '#6ba3bf' }}
+                            >
+                              Principal: ${loan.amount.toLocaleString()} +{' '}
+                              {(loan.interest * 100).toFixed(1)}% interest
                             </div>
                           </div>
                           <div style={{ textAlign: 'right' }}>
-                            <div style={{
-                              fontSize: '1.1rem',
-                              fontWeight: 'bold',
-                              color: isOverdue ? '#ef4444' : daysLeft <= 2 ? '#f59e0b' : '#22c55e'
-                            }}>
+                            <div
+                              style={{
+                                fontSize: '1.1rem',
+                                fontWeight: 'bold',
+                                color: isOverdue
+                                  ? '#ef4444'
+                                  : daysLeft <= 2
+                                  ? '#f59e0b'
+                                  : '#22c55e',
+                              }}
+                            >
                               {isOverdue ? 'OVERDUE!' : `${daysLeft} days left`}
                             </div>
-                            <div style={{ fontSize: '0.8rem', color: '#6ba3bf' }}>
+                            <div
+                              style={{ fontSize: '0.8rem', color: '#6ba3bf' }}
+                            >
                               Due: {loan.dueDate.toLocaleDateString()}
                             </div>
                           </div>
                         </div>
                         {/* Outstanding and Partial Repay Controls */}
-                        <div style={{
-                          display: 'grid',
-                          gridTemplateColumns: '1fr',
-                          gap: '0.5rem',
-                          marginBottom: '0.75rem',
-                          color: '#6ba3bf'
-                        }}>
+                        <div
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1fr',
+                            gap: '0.5rem',
+                            marginBottom: '0.75rem',
+                            color: '#6ba3bf',
+                          }}
+                        >
                           <div>
-                            <strong style={{ color: '#fff' }}>Outstanding:</strong>{' '}
+                            <strong style={{ color: '#fff' }}>
+                              Outstanding:
+                            </strong>{' '}
                             ${getOutstanding(loan).toLocaleString()}
                             {loan.paidAmount ? (
-                              <span style={{ marginLeft: '8px', fontSize: '0.85rem' }}>
-                                (Paid so far: ${loan.paidAmount.toLocaleString()})
+                              <span
+                                style={{
+                                  marginLeft: '8px',
+                                  fontSize: '0.85rem',
+                                }}
+                              >
+                                (Paid so far: $
+                                {loan.paidAmount.toLocaleString()})
                               </span>
                             ) : null}
                           </div>
-                          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          <div
+                            style={{
+                              display: 'flex',
+                              gap: '0.5rem',
+                              alignItems: 'center',
+                            }}
+                          >
                             <input
                               type="number"
                               min={0}
                               value={repayInputs[loan.id] ?? ''}
-                              onChange={(e) => setRepayInputs((m) => ({ ...m, [loan.id]: Number(e.target.value) }))}
+                              onChange={(e) =>
+                                setRepayInputs((m) => ({
+                                  ...m,
+                                  [loan.id]: Number(e.target.value),
+                                }))
+                              }
                               placeholder="Enter amount"
                               style={{
                                 flex: 1,
@@ -550,37 +697,89 @@ const LoanShark: React.FC = () => {
                             <button
                               onClick={() => {
                                 const outstanding = getOutstanding(loan)
-                                setRepayInputs((m) => ({ ...m, [loan.id]: Math.floor(outstanding * 0.25) }))
+                                setRepayInputs((m) => ({
+                                  ...m,
+                                  [loan.id]: Math.floor(outstanding * 0.25),
+                                }))
                               }}
-                              style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: '#6ba3bf' }}
-                            >25%</button>
+                              style={{
+                                padding: '0.5rem',
+                                borderRadius: 8,
+                                border: '1px solid rgba(255,255,255,0.15)',
+                                background: 'rgba(255,255,255,0.05)',
+                                color: '#6ba3bf',
+                              }}
+                            >
+                              25%
+                            </button>
                             <button
                               onClick={() => {
                                 const outstanding = getOutstanding(loan)
-                                setRepayInputs((m) => ({ ...m, [loan.id]: Math.floor(outstanding * 0.5) }))
+                                setRepayInputs((m) => ({
+                                  ...m,
+                                  [loan.id]: Math.floor(outstanding * 0.5),
+                                }))
                               }}
-                              style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: '#6ba3bf' }}
-                            >50%</button>
+                              style={{
+                                padding: '0.5rem',
+                                borderRadius: 8,
+                                border: '1px solid rgba(255,255,255,0.15)',
+                                background: 'rgba(255,255,255,0.05)',
+                                color: '#6ba3bf',
+                              }}
+                            >
+                              50%
+                            </button>
                             <button
                               onClick={() => {
                                 const outstanding = getOutstanding(loan)
                                 const max = Math.min(outstanding, user.money)
-                                setRepayInputs((m) => ({ ...m, [loan.id]: max }))
+                                setRepayInputs((m) => ({
+                                  ...m,
+                                  [loan.id]: max,
+                                }))
                               }}
-                              style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: '#6ba3bf' }}
-                            >Max</button>
+                              style={{
+                                padding: '0.5rem',
+                                borderRadius: 8,
+                                border: '1px solid rgba(255,255,255,0.15)',
+                                background: 'rgba(255,255,255,0.05)',
+                                color: '#6ba3bf',
+                              }}
+                            >
+                              Max
+                            </button>
                             <button
                               onClick={() => {
                                 const outstanding = getOutstanding(loan)
-                                setRepayInputs((m) => ({ ...m, [loan.id]: outstanding }))
+                                setRepayInputs((m) => ({
+                                  ...m,
+                                  [loan.id]: outstanding,
+                                }))
                               }}
-                              style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: '#6ba3bf' }}
-                            >Full</button>
+                              style={{
+                                padding: '0.5rem',
+                                borderRadius: 8,
+                                border: '1px solid rgba(255,255,255,0.15)',
+                                background: 'rgba(255,255,255,0.05)',
+                                color: '#6ba3bf',
+                              }}
+                            >
+                              Full
+                            </button>
                           </div>
                           <div style={{ fontSize: '0.85rem' }}>
-                            Remaining after payment: {' '}
+                            Remaining after payment:{' '}
                             <strong style={{ color: '#fff' }}>
-                              ${Math.max(getOutstanding(loan) - Math.max(0, Math.floor(repayInputs[loan.id] ?? 0)), 0).toLocaleString()}
+                              $
+                              {Math.max(
+                                getOutstanding(loan) -
+                                  Math.max(
+                                    0,
+                                    Math.floor(repayInputs[loan.id] ?? 0)
+                                  ),
+                                0
+                              ).toLocaleString()}
                             </strong>
                           </div>
                         </div>
@@ -589,7 +788,15 @@ const LoanShark: React.FC = () => {
                           onClick={() => repayLoanPartial(loan.id)}
                           disabled={(repayInputs[loan.id] ?? 0) <= 0}
                         >
-                          {`💵 Repay ${repayInputs[loan.id] ? '$' + Math.max(0, Math.floor(repayInputs[loan.id])).toLocaleString() : 'Amount'}`}
+                          {`💵 Repay ${
+                            repayInputs[loan.id]
+                              ? '$' +
+                                Math.max(
+                                  0,
+                                  Math.floor(repayInputs[loan.id])
+                                ).toLocaleString()
+                              : 'Amount'
+                          }`}
                         </GradientButton>
                         <div style={{ marginTop: '0.5rem' }}>
                           <GradientButton
@@ -598,8 +805,12 @@ const LoanShark: React.FC = () => {
                             disabled={user.money < getOutstanding(loan)}
                           >
                             {user.money < getOutstanding(loan)
-                              ? `Need $${(getOutstanding(loan) - user.money).toLocaleString()} more`
-                              : `✅ Repay in Full (${getOutstanding(loan).toLocaleString()})`}
+                              ? `Need $${(
+                                  getOutstanding(loan) - user.money
+                                ).toLocaleString()} more`
+                              : `✅ Repay in Full (${getOutstanding(
+                                  loan
+                                ).toLocaleString()})`}
                           </GradientButton>
                         </div>
                       </div>
@@ -612,26 +823,36 @@ const LoanShark: React.FC = () => {
             {/* Take New Loan */}
             {!hasActiveLoan && (
               <GlassCard>
-                <h3 style={{
-                  fontSize: '1.3rem',
-                  fontWeight: 'bold',
-                  marginBottom: '1.5rem',
-                  color: '#4a9eff'
-                }}>
+                <h3
+                  style={{
+                    fontSize: '1.3rem',
+                    fontWeight: 'bold',
+                    marginBottom: '1.5rem',
+                    color: '#4a9eff',
+                  }}
+                >
                   💰 Request New Loan
                 </h3>
 
                 {/* Loan Amount Slider */}
                 <div style={{ marginBottom: '2rem' }}>
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    marginBottom: '1rem'
-                  }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      marginBottom: '1rem',
+                    }}
+                  >
                     <label style={{ color: '#6ba3bf', fontWeight: '600' }}>
                       Loan Amount
                     </label>
-                    <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#22c55e' }}>
+                    <span
+                      style={{
+                        fontSize: '1.5rem',
+                        fontWeight: 'bold',
+                        color: '#22c55e',
+                      }}
+                    >
                       ${loanAmount.toLocaleString()}
                     </span>
                   </div>
@@ -644,13 +865,15 @@ const LoanShark: React.FC = () => {
                     onChange={(e) => setLoanAmount(Number(e.target.value))}
                     className="slider"
                   />
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    fontSize: '0.8rem',
-                    color: '#6ba3bf',
-                    marginTop: '0.5rem'
-                  }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: '0.8rem',
+                      color: '#6ba3bf',
+                      marginTop: '0.5rem',
+                    }}
+                  >
                     <span>$0</span>
                     <span>${maxLoanAmount.toLocaleString()}</span>
                   </div>
@@ -658,36 +881,42 @@ const LoanShark: React.FC = () => {
 
                 {/* Duration Selection */}
                 <div style={{ marginBottom: '2rem' }}>
-                  <label style={{
-                    display: 'block',
-                    color: '#6ba3bf',
-                    fontWeight: '600',
-                    marginBottom: '1rem'
-                  }}>
+                  <label
+                    style={{
+                      display: 'block',
+                      color: '#6ba3bf',
+                      fontWeight: '600',
+                      marginBottom: '1rem',
+                    }}
+                  >
                     Repayment Period
                   </label>
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(4, 1fr)',
-                    gap: '0.75rem'
-                  }}>
-                    {[3, 7, 14, 30].map(days => (
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(4, 1fr)',
+                      gap: '0.75rem',
+                    }}
+                  >
+                    {[3, 7, 14, 30].map((days) => (
                       <button
                         key={days}
                         onClick={() => setSelectedDuration(days)}
                         style={{
                           padding: '0.75rem',
                           borderRadius: '8px',
-                          border: selectedDuration === days 
-                            ? '2px solid #4a9eff' 
-                            : '1px solid rgba(255, 255, 255, 0.1)',
-                          background: selectedDuration === days 
-                            ? 'rgba(74, 158, 255, 0.2)' 
-                            : 'rgba(255, 255, 255, 0.05)',
+                          border:
+                            selectedDuration === days
+                              ? '2px solid #4a9eff'
+                              : '1px solid rgba(255, 255, 255, 0.1)',
+                          background:
+                            selectedDuration === days
+                              ? 'rgba(74, 158, 255, 0.2)'
+                              : 'rgba(255, 255, 255, 0.05)',
                           color: selectedDuration === days ? '#4a9eff' : '#fff',
                           cursor: 'pointer',
                           fontWeight: '600',
-                          transition: 'all 0.3s'
+                          transition: 'all 0.3s',
                         }}
                       >
                         {days} days
@@ -698,40 +927,74 @@ const LoanShark: React.FC = () => {
 
                 {/* Loan Summary */}
                 {loanAmount > 0 && (
-                  <div style={{
-                    padding: '1.5rem',
-                    background: 'rgba(74, 158, 255, 0.1)',
-                    border: '1px solid rgba(74, 158, 255, 0.3)',
-                    borderRadius: '12px',
-                    marginBottom: '1.5rem'
-                  }}>
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: '1fr 1fr',
-                      gap: '1rem',
-                      marginBottom: '1rem'
-                    }}>
+                  <div
+                    style={{
+                      padding: '1.5rem',
+                      background: 'rgba(74, 158, 255, 0.1)',
+                      border: '1px solid rgba(74, 158, 255, 0.3)',
+                      borderRadius: '12px',
+                      marginBottom: '1.5rem',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: '1rem',
+                        marginBottom: '1rem',
+                      }}
+                    >
                       <div>
-                        <div style={{ fontSize: '0.8rem', color: '#6ba3bf' }}>Loan Amount</div>
-                        <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#fff' }}>
+                        <div style={{ fontSize: '0.8rem', color: '#6ba3bf' }}>
+                          Loan Amount
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '1.2rem',
+                            fontWeight: 'bold',
+                            color: '#fff',
+                          }}
+                        >
                           ${loanAmount.toLocaleString()}
                         </div>
                       </div>
                       <div>
-                        <div style={{ fontSize: '0.8rem', color: '#6ba3bf' }}>Interest ({(interestRate * 100).toFixed(1)}%)</div>
-                        <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#f59e0b' }}>
+                        <div style={{ fontSize: '0.8rem', color: '#6ba3bf' }}>
+                          Interest ({(interestRate * 100).toFixed(1)}%)
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '1.2rem',
+                            fontWeight: 'bold',
+                            color: '#f59e0b',
+                          }}
+                        >
                           ${(loanAmount * interestRate).toLocaleString()}
                         </div>
                       </div>
                     </div>
-                    <div style={{
-                      borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-                      paddingTop: '1rem'
-                    }}>
-                      <div style={{ fontSize: '0.8rem', color: '#6ba3bf', marginBottom: '0.5rem' }}>
+                    <div
+                      style={{
+                        borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+                        paddingTop: '1rem',
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: '0.8rem',
+                          color: '#6ba3bf',
+                          marginBottom: '0.5rem',
+                        }}
+                      >
                         Total Repayment in {selectedDuration} days
                       </div>
-                      <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#ef4444' }}>
+                      <div
+                        style={{
+                          fontSize: '2rem',
+                          fontWeight: 'bold',
+                          color: '#ef4444',
+                        }}
+                      >
                         ${totalOwed.toLocaleString()}
                       </div>
                     </div>
@@ -753,52 +1016,65 @@ const LoanShark: React.FC = () => {
             {/* Loan History */}
             {loanHistory.pastLoans.length > 0 && (
               <GlassCard>
-                <h3 style={{
-                  fontSize: '1.3rem',
-                  fontWeight: 'bold',
-                  marginBottom: '1rem',
-                  color: '#6ba3bf'
-                }}>
+                <h3
+                  style={{
+                    fontSize: '1.3rem',
+                    fontWeight: 'bold',
+                    marginBottom: '1rem',
+                    color: '#6ba3bf',
+                  }}
+                >
                   📜 Loan History
                 </h3>
-                <div style={{
-                  maxHeight: '300px',
-                  overflowY: 'auto',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.75rem'
-                }}>
-                  {loanHistory.pastLoans.slice(-10).reverse().map(loan => (
-                    <div
-                      key={loan.id}
-                      style={{
-                        padding: '1rem',
-                        background: 'rgba(255, 255, 255, 0.03)',
-                        borderLeft: `3px solid ${loan.wasLate ? '#f59e0b' : '#22c55e'}`,
-                        borderRadius: '8px',
-                        fontSize: '0.9rem'
-                      }}
-                    >
-                      <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        marginBottom: '0.5rem'
-                      }}>
-                        <span style={{ fontWeight: 'bold', color: '#fff' }}>
-                          ${loan.totalOwed.toLocaleString()}
-                        </span>
-                        <span style={{
-                          color: loan.wasLate ? '#f59e0b' : '#22c55e',
-                          fontWeight: '600'
-                        }}>
-                          {loan.wasLate ? '⚠️ Paid Late' : '✅ On Time'}
-                        </span>
+                <div
+                  style={{
+                    maxHeight: '300px',
+                    overflowY: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.75rem',
+                  }}
+                >
+                  {loanHistory.pastLoans
+                    .slice(-10)
+                    .reverse()
+                    .map((loan) => (
+                      <div
+                        key={loan.id}
+                        style={{
+                          padding: '1rem',
+                          background: 'rgba(255, 255, 255, 0.03)',
+                          borderLeft: `3px solid ${
+                            loan.wasLate ? '#f59e0b' : '#22c55e'
+                          }`,
+                          borderRadius: '8px',
+                          fontSize: '0.9rem',
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            marginBottom: '0.5rem',
+                          }}
+                        >
+                          <span style={{ fontWeight: 'bold', color: '#fff' }}>
+                            ${loan.totalOwed.toLocaleString()}
+                          </span>
+                          <span
+                            style={{
+                              color: loan.wasLate ? '#f59e0b' : '#22c55e',
+                              fontWeight: '600',
+                            }}
+                          >
+                            {loan.wasLate ? '⚠️ Paid Late' : '✅ On Time'}
+                          </span>
+                        </div>
+                        <div style={{ color: '#6ba3bf', fontSize: '0.8rem' }}>
+                          Paid: {loan.paidAt?.toLocaleDateString()}
+                        </div>
                       </div>
-                      <div style={{ color: '#6ba3bf', fontSize: '0.8rem' }}>
-                        Paid: {loan.paidAt?.toLocaleDateString()}
-                      </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </GlassCard>
             )}
@@ -808,61 +1084,79 @@ const LoanShark: React.FC = () => {
 
       {/* Confirmation Modal */}
       {showConfirm && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0, 0, 0, 0.8)',
-          backdropFilter: 'blur(10px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          animation: 'fadeIn 0.3s ease-out'
-        }}>
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.8)',
+            backdropFilter: 'blur(10px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            animation: 'fadeIn 0.3s ease-out',
+          }}
+        >
           <div style={{ maxWidth: '500px', width: '90%' }}>
             <GlassCard>
-            <h2 style={{
-              fontSize: '1.8rem',
-              fontWeight: 'bold',
-              color: '#ef4444',
-              marginBottom: '1rem'
-            }}>
-              ⚠️ Confirm Loan
-            </h2>
-            <p style={{ marginBottom: '1.5rem', lineHeight: '1.6', color: '#6ba3bf' }}>
-              You're about to borrow <strong style={{ color: '#22c55e' }}>${loanAmount.toLocaleString()}</strong> with {(interestRate * 100).toFixed(1)}% interest.
-              You'll need to repay <strong style={{ color: '#ef4444' }}>${totalOwed.toLocaleString()}</strong> within {selectedDuration} days.
-            </p>
-            <p style={{
-              marginBottom: '2rem',
-              padding: '1rem',
-              background: 'rgba(239, 68, 68, 0.1)',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-              borderRadius: '8px',
-              fontSize: '0.9rem',
-              color: '#ef4444',
-              fontStyle: 'italic'
-            }}>
-              ⚠️ Warning: Failure to repay on time will damage your credit rating and increase future interest rates!
-            </p>
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <div style={{ flex: 1 }}>
-                <GradientButton
-                  gradient="blue"
-                  onClick={() => setShowConfirm(false)}
-                >
-                  Cancel
-                </GradientButton>
+              <h2
+                style={{
+                  fontSize: '1.8rem',
+                  fontWeight: 'bold',
+                  color: '#ef4444',
+                  marginBottom: '1rem',
+                }}
+              >
+                ⚠️ Confirm Loan
+              </h2>
+              <p
+                style={{
+                  marginBottom: '1.5rem',
+                  lineHeight: '1.6',
+                  color: '#6ba3bf',
+                }}
+              >
+                You're about to borrow{' '}
+                <strong style={{ color: '#22c55e' }}>
+                  ${loanAmount.toLocaleString()}
+                </strong>{' '}
+                with {(interestRate * 100).toFixed(1)}% interest. You'll need to
+                repay{' '}
+                <strong style={{ color: '#ef4444' }}>
+                  ${totalOwed.toLocaleString()}
+                </strong>{' '}
+                within {selectedDuration} days.
+              </p>
+              <p
+                style={{
+                  marginBottom: '2rem',
+                  padding: '1rem',
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  borderRadius: '8px',
+                  fontSize: '0.9rem',
+                  color: '#ef4444',
+                  fontStyle: 'italic',
+                }}
+              >
+                ⚠️ Warning: Failure to repay on time will damage your credit
+                rating and increase future interest rates!
+              </p>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <div style={{ flex: 1 }}>
+                  <GradientButton
+                    gradient="blue"
+                    onClick={() => setShowConfirm(false)}
+                  >
+                    Cancel
+                  </GradientButton>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <GradientButton gradient="purple" onClick={takeLoan}>
+                    Confirm Loan
+                  </GradientButton>
+                </div>
               </div>
-              <div style={{ flex: 1 }}>
-                <GradientButton
-                  gradient="purple"
-                  onClick={takeLoan}
-                >
-                  Confirm Loan
-                </GradientButton>
-              </div>
-            </div>
             </GlassCard>
           </div>
         </div>

@@ -78,6 +78,7 @@ export const SECONDARY_WEAPONS: Item[] = [
     marketValue: 2000,
     tradeable: true,
     usable: false,
+    imageUrl: '/images/Laser-Pistol.png',
     stats: {
       damage: 8,
       accuracy: 80,

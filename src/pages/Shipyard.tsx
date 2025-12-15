@@ -6,6 +6,7 @@ import { GlassCard } from '../components/ui/GlassCard'
 import { GradientButton } from '../components/ui/GradientButton'
 import { theme } from '../styles/theme'
 import TravelingBlocker from '../components/TravelingBlocker'
+import ShipViewer from '../components/ShipViewer'
 
 type ShipTier = 'basic' | 'advanced' | 'elite' | 'legendary'
 type FuelType = 'ion' | 'fusion' | 'quantum'
@@ -15,6 +16,7 @@ export interface Ship {
   name: string
   tier: ShipTier
   modelPath: string
+  modelScale?: number // Scale for 3D model display
   price: number
   hull: number
   maxHull: number
@@ -84,7 +86,8 @@ const SHIPS: Ship[] = [
     id: 'ship_basic_starter',
     name: 'Nebula Scout',
     tier: 'basic',
-    modelPath: '/models/spaceship(2).glb',
+    modelPath: '/models/NebulaScout.glb',
+    modelScale: 0.4,
     price: 0, // Free starter ship
     hull: 100,
     maxHull: 100,
@@ -99,7 +102,8 @@ const SHIPS: Ship[] = [
     id: 'ship_basic_hauler',
     name: 'Cargo Mule',
     tier: 'basic',
-    modelPath: '/models/spaceship(2).glb',
+    modelPath: '/models/spaceship_-_cargo.glb',
+    modelScale: 1.5,
     price: 25000,
     hull: 120,
     maxHull: 120,
@@ -115,7 +119,8 @@ const SHIPS: Ship[] = [
     id: 'ship_basic_interceptor',
     name: 'Stingray',
     tier: 'basic',
-    modelPath: '/models/spaceship(2).glb',
+    modelPath: '/models/light_fighter_spaceship_-_free_-.glb',
+    modelScale: 2.0,
     price: 30000,
     hull: 90,
     maxHull: 90,
@@ -133,7 +138,8 @@ const SHIPS: Ship[] = [
     id: 'ship_advanced_corsair',
     name: 'Corsair MK-II',
     tier: 'advanced',
-    modelPath: '/models/spaceship(2).glb',
+    modelPath: '/models/class-3_fighter_spaceship_hodbin_-_free_model.glb',
+    modelScale: 0.15,
     price: 150000,
     hull: 250,
     maxHull: 250,
@@ -149,7 +155,8 @@ const SHIPS: Ship[] = [
     id: 'ship_advanced_phantom',
     name: 'Shadow Phantom',
     tier: 'advanced',
-    modelPath: '/models/spaceship(2).glb',
+    modelPath: '/models/space_fighter.glb',
+    modelScale: 0.5,
     price: 175000,
     hull: 200,
     maxHull: 200,
@@ -165,7 +172,8 @@ const SHIPS: Ship[] = [
     id: 'ship_advanced_bulwark',
     name: 'Iron Bulwark',
     tier: 'advanced',
-    modelPath: '/models/spaceship(2).glb',
+    modelPath: '/models/spaceship_-_cargo.glb',
+    modelScale: 1.5,
     price: 160000,
     hull: 300,
     maxHull: 300,
@@ -183,7 +191,8 @@ const SHIPS: Ship[] = [
     id: 'ship_elite_predator',
     name: 'Apex Predator',
     tier: 'elite',
-    modelPath: '/models/spaceship(2).glb',
+    modelPath: '/models/spaceship_o-100_mk2.glb',
+    modelScale: 1.2,
     price: 500000,
     hull: 450,
     maxHull: 450,
@@ -199,7 +208,8 @@ const SHIPS: Ship[] = [
     id: 'ship_elite_wraith',
     name: 'Void Wraith',
     tier: 'elite',
-    modelPath: '/models/spaceship(2).glb',
+    modelPath: '/models/chibi_spaceship_clst_50.glb',
+    modelScale: 0.8,
     price: 550000,
     hull: 380,
     maxHull: 380,
@@ -217,7 +227,8 @@ const SHIPS: Ship[] = [
     id: 'ship_legendary_titan',
     name: 'Galactic Titan',
     tier: 'legendary',
-    modelPath: '/models/spaceship(2).glb',
+    modelPath: '/models/spaceship_-_cb1.glb',
+    modelScale: 1.0,
     price: 2000000,
     hull: 800,
     maxHull: 800,
@@ -233,7 +244,8 @@ const SHIPS: Ship[] = [
     id: 'ship_legendary_phoenix',
     name: 'Eternal Phoenix',
     tier: 'legendary',
-    modelPath: '/models/spaceship(2).glb',
+    modelPath: '/models/class-3_fighter_spaceship_hodbin_-_free_model.glb',
+    modelScale: 0.15,
     price: 2500000,
     hull: 700,
     maxHull: 700,
@@ -256,7 +268,8 @@ const Shipyard = () => {
   const [message, setMessage] = useState<string | null>(null)
 
   // Get user's current ship (stored in user object)
-  const userShip = user?.ship || SHIPS[0] // Default to starter if no ship
+  const userShip = user?.ship
+  const starterShip = SHIPS[0] // Nebula Scout
 
   // Repair timer countdown
   useEffect(() => {
@@ -461,7 +474,7 @@ const Shipyard = () => {
   if (!user) return null
 
   // Repair in progress screen
-  if (repairInProgress) {
+  if (repairInProgress && userShip) {
     return (
       <PageContainer>
         <div style={styles.repairScreen}>
@@ -551,7 +564,7 @@ const Shipyard = () => {
           <div style={styles.statItem}>
             <span style={{ color: '#888' }}>CURRENT SHIP:</span>
             <span style={{ fontWeight: 'bold', marginLeft: '0.5rem' }}>
-              {userShip.name}
+              {userShip?.name || 'None'}
             </span>
           </div>
         </div>
@@ -559,149 +572,268 @@ const Shipyard = () => {
 
       {viewMode === 'browse' && (
         <div>
+          {/* No Ship - Show Claim Starter */}
+          {!userShip && (
+            <GlassCard>
+              <div
+                style={{
+                  padding: '3rem',
+                  textAlign: 'center',
+                }}
+              >
+                <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🚀</div>
+                <h2
+                  style={{
+                    fontSize: '2rem',
+                    color: '#4a9eff',
+                    marginBottom: '1rem',
+                  }}
+                >
+                  Claim Your Starter Ship
+                </h2>
+                <p
+                  style={{
+                    fontSize: '1.1rem',
+                    color: '#888',
+                    marginBottom: '2rem',
+                    lineHeight: '1.6',
+                  }}
+                >
+                  Every pilot needs a vessel. The District Commander has
+                  arranged for you to receive a{' '}
+                  <strong style={{ color: '#4a9eff' }}>
+                    {starterShip.name}
+                  </strong>{' '}
+                  at no charge.
+                  <br />
+                  Claim it now to begin your journey through the Astral
+                  District.
+                </p>
+
+                <div
+                  style={{
+                    width: '100%',
+                    maxWidth: '400px',
+                    height: '250px',
+                    margin: '2rem auto',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    background: 'rgba(0, 0, 0, 0.3)',
+                    border: '2px solid rgba(74, 158, 255, 0.3)',
+                  }}
+                >
+                  <ShipViewer
+                    src={starterShip.modelPath}
+                    height={250}
+                    width="100%"
+                    autoRotate={true}
+                    initialScale={starterShip.modelScale || 0.4}
+                  />
+                </div>
+
+                <div
+                  style={{
+                    background: 'rgba(74, 158, 255, 0.1)',
+                    border: '1px solid rgba(74, 158, 255, 0.3)',
+                    borderRadius: '8px',
+                    padding: '1rem',
+                    marginBottom: '2rem',
+                    maxWidth: '400px',
+                    margin: '0 auto 2rem',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      gap: '0.75rem',
+                      fontSize: '0.95rem',
+                    }}
+                  >
+                    <div>
+                      <div style={{ color: '#888' }}>Hull</div>
+                      <div style={{ color: '#fff', fontWeight: 'bold' }}>
+                        {starterShip.maxHull}
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ color: '#888' }}>Shields</div>
+                      <div style={{ color: '#fff', fontWeight: 'bold' }}>
+                        {starterShip.maxShields}
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ color: '#888' }}>Cargo</div>
+                      <div style={{ color: '#fff', fontWeight: 'bold' }}>
+                        {starterShip.cargoCapacity}
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ color: '#888' }}>Fuel Type</div>
+                      <div style={{ color: '#fff', fontWeight: 'bold' }}>
+                        ION
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <GradientButton
+                  gradient="blue"
+                  size="lg"
+                  onClick={() => handlePurchaseShip(starterShip)}
+                  data-claim-ship-button
+                >
+                  🚀 Claim {starterShip.name}
+                </GradientButton>
+              </div>
+            </GlassCard>
+          )}
+
           {/* Current Ship Display */}
-          <GlassCard style={{ marginBottom: '2rem' }}>
-            <div style={styles.currentShipSection}>
-              <h2 style={styles.sectionTitle}>Your Current Ship</h2>
-              <div style={styles.currentShipDisplay}>
-                <div style={styles.shipStats}>
-                  <div style={styles.shipHeader}>
-                    <h3 style={styles.shipName}>{userShip.name}</h3>
-                    <span
-                      style={{
-                        ...styles.tierBadge,
-                        background: getTierColor(userShip.tier),
-                      }}
-                    >
-                      {getTierLabel(userShip.tier)}
-                    </span>
-                  </div>
-
-                  <div style={styles.healthBars}>
-                    <div>
-                      <div style={styles.healthLabel}>
-                        <span>🛡️ Hull</span>
-                        <span>
-                          {userShip.hull}/{userShip.maxHull}
-                        </span>
-                      </div>
-                      <div style={styles.healthBar}>
-                        <div
-                          style={{
-                            ...styles.healthFill,
-                            width: `${
-                              (userShip.hull / userShip.maxHull) * 100
-                            }%`,
-                            background:
-                              userShip.hull < userShip.maxHull * 0.3
-                                ? '#ef4444'
-                                : '#22c55e',
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <div style={styles.healthLabel}>
-                        <span>⚡ Shields</span>
-                        <span>
-                          {userShip.shields}/{userShip.maxShields}
-                        </span>
-                      </div>
-                      <div style={styles.healthBar}>
-                        <div
-                          style={{
-                            ...styles.healthFill,
-                            width: `${
-                              (userShip.shields / userShip.maxShields) * 100
-                            }%`,
-                            background:
-                              userShip.shields < userShip.maxShields * 0.3
-                                ? '#ef4444'
-                                : '#00d9ff',
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={styles.shipInfoGrid}>
-                    <div style={styles.shipInfoItem}>
-                      <span style={{ color: '#888' }}>Cargo:</span>
-                      <span>{userShip.cargoCapacity} items</span>
-                    </div>
-                    <div style={styles.shipInfoItem}>
-                      <span style={{ color: '#888' }}>Fuel Types:</span>
-                      <span>
-                        {userShip.fuelTypes
-                          .map((f) => f.toUpperCase())
-                          .join(', ')}
+          {userShip && (
+            <GlassCard>
+              <div style={styles.currentShipSection}>
+                <h2 style={styles.sectionTitle}>Your Current Ship</h2>
+                <div style={styles.currentShipDisplay}>
+                  <div style={styles.shipStats}>
+                    <div style={styles.shipHeader}>
+                      <h3 style={styles.shipName}>{userShip.name}</h3>
+                      <span
+                        style={{
+                          ...styles.tierBadge,
+                          background: getTierColor(userShip.tier),
+                        }}
+                      >
+                        {getTierLabel(userShip.tier)}
                       </span>
                     </div>
-                    {userShip.travelTimeReduction > 0 && (
+
+                    <div style={styles.healthBars}>
+                      <div>
+                        <div style={styles.healthLabel}>
+                          <span>🛡️ Hull</span>
+                          <span>
+                            {userShip.hull}/{userShip.maxHull}
+                          </span>
+                        </div>
+                        <div style={styles.healthBar}>
+                          <div
+                            style={{
+                              ...styles.healthFill,
+                              width: `${
+                                (userShip.hull / userShip.maxHull) * 100
+                              }%`,
+                              background:
+                                userShip.hull < userShip.maxHull * 0.3
+                                  ? '#ef4444'
+                                  : '#22c55e',
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <div style={styles.healthLabel}>
+                          <span>⚡ Shields</span>
+                          <span>
+                            {userShip.shields}/{userShip.maxShields}
+                          </span>
+                        </div>
+                        <div style={styles.healthBar}>
+                          <div
+                            style={{
+                              ...styles.healthFill,
+                              width: `${
+                                (userShip.shields / userShip.maxShields) * 100
+                              }%`,
+                              background:
+                                userShip.shields < userShip.maxShields * 0.3
+                                  ? '#ef4444'
+                                  : '#00d9ff',
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={styles.shipInfoGrid}>
                       <div style={styles.shipInfoItem}>
-                        <span style={{ color: '#888' }}>Travel Bonus:</span>
-                        <span style={{ color: '#22c55e' }}>
-                          -{userShip.travelTimeReduction}% time
+                        <span style={{ color: '#888' }}>Cargo:</span>
+                        <span>{userShip.cargoCapacity} items</span>
+                      </div>
+                      <div style={styles.shipInfoItem}>
+                        <span style={{ color: '#888' }}>Fuel Types:</span>
+                        <span>
+                          {userShip.fuelTypes
+                            .map((f) => f.toUpperCase())
+                            .join(', ')}
                         </span>
                       </div>
-                    )}
+                      {userShip.travelTimeReduction > 0 && (
+                        <div style={styles.shipInfoItem}>
+                          <span style={{ color: '#888' }}>Travel Bonus:</span>
+                          <span style={{ color: '#22c55e' }}>
+                            -{userShip.travelTimeReduction}% time
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {userShip.statModifiers &&
+                      Object.keys(userShip.statModifiers).length > 0 && (
+                        <div style={styles.modifiers}>
+                          <div
+                            style={{
+                              fontSize: '14px',
+                              fontWeight: 'bold',
+                              marginBottom: '0.5rem',
+                            }}
+                          >
+                            Stat Modifiers:
+                          </div>
+                          <div style={styles.modifiersList}>
+                            {Object.entries(userShip.statModifiers).map(
+                              ([stat, value]) => (
+                                <span
+                                  key={stat}
+                                  style={{
+                                    ...styles.modifierTag,
+                                    color: value > 0 ? '#22c55e' : '#ef4444',
+                                  }}
+                                >
+                                  {stat}: {value > 0 ? '+' : ''}
+                                  {value}%
+                                </span>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      )}
                   </div>
-
-                  {userShip.statModifiers &&
-                    Object.keys(userShip.statModifiers).length > 0 && (
-                      <div style={styles.modifiers}>
-                        <div
-                          style={{
-                            fontSize: '14px',
-                            fontWeight: 'bold',
-                            marginBottom: '0.5rem',
-                          }}
-                        >
-                          Stat Modifiers:
-                        </div>
-                        <div style={styles.modifiersList}>
-                          {Object.entries(userShip.statModifiers).map(
-                            ([stat, value]) => (
-                              <span
-                                key={stat}
-                                style={{
-                                  ...styles.modifierTag,
-                                  color: value > 0 ? '#22c55e' : '#ef4444',
-                                }}
-                              >
-                                {stat}: {value > 0 ? '+' : ''}
-                                {value}%
-                              </span>
-                            )
-                          )}
-                        </div>
-                      </div>
-                    )}
                 </div>
+
+                {(userShip.hull < userShip.maxHull ||
+                  userShip.shields < userShip.maxShields) && (
+                  <div style={styles.damageWarning}>
+                    <span style={{ fontSize: '20px' }}>⚠️</span>
+                    <span>
+                      Your ship has sustained damage. Repair recommended before
+                      your next mission.
+                    </span>
+                  </div>
+                )}
+
+                {userShip.hull === 0 && (
+                  <div style={styles.criticalWarning}>
+                    <span style={{ fontSize: '20px' }}>🚨</span>
+                    <span>
+                      CRITICAL: Hull integrity at 0%. Risk of losing all cargo!
+                    </span>
+                  </div>
+                )}
               </div>
-
-              {(userShip.hull < userShip.maxHull ||
-                userShip.shields < userShip.maxShields) && (
-                <div style={styles.damageWarning}>
-                  <span style={{ fontSize: '20px' }}>⚠️</span>
-                  <span>
-                    Your ship has sustained damage. Repair recommended before
-                    your next mission.
-                  </span>
-                </div>
-              )}
-
-              {userShip.hull === 0 && (
-                <div style={styles.criticalWarning}>
-                  <span style={{ fontSize: '20px' }}>🚨</span>
-                  <span>
-                    CRITICAL: Hull integrity at 0%. Risk of losing all cargo!
-                  </span>
-                </div>
-              )}
-            </div>
-          </GlassCard>
+            </GlassCard>
+          )}
 
           {/* Ships for Sale */}
           <h2 style={styles.sectionTitle}>Ships for Sale</h2>
@@ -719,7 +851,7 @@ const Shipyard = () => {
                 </h3>
                 <div style={styles.shipsGrid}>
                   {SHIPS.filter(
-                    (ship) => ship.tier === tier && ship.id !== userShip.id
+                    (ship) => ship.tier === tier && ship.id !== userShip?.id
                   ).map((ship) => (
                     <GlassCard key={ship.id} hover>
                       <div style={styles.shipCard}>
@@ -733,6 +865,26 @@ const Shipyard = () => {
                           >
                             {getTierLabel(ship.tier)}
                           </span>
+                        </div>
+
+                        {/* 3D Ship Model */}
+                        <div
+                          style={{
+                            width: '100%',
+                            height: '200px',
+                            marginBottom: '1rem',
+                            borderRadius: '8px',
+                            overflow: 'hidden',
+                            background: 'rgba(0, 0, 0, 0.3)',
+                          }}
+                        >
+                          <ShipViewer
+                            src={ship.modelPath}
+                            height={200}
+                            width="100%"
+                            autoRotate={true}
+                            initialScale={ship.modelScale || 0.3}
+                          />
                         </div>
 
                         <p style={styles.shipDescription}>{ship.description}</p>
@@ -827,143 +979,179 @@ const Shipyard = () => {
 
       {viewMode === 'repair' && (
         <div>
-          <GlassCard>
-            <div style={styles.repairBaySection}>
-              <h2 style={styles.sectionTitle}>Repair Bay</h2>
+          {!userShip ? (
+            <GlassCard>
+              <div
+                style={{
+                  padding: '3rem',
+                  textAlign: 'center',
+                }}
+              >
+                <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🔧</div>
+                <h2
+                  style={{
+                    fontSize: '1.5rem',
+                    color: '#888',
+                    marginBottom: '1rem',
+                  }}
+                >
+                  No Ship to Repair
+                </h2>
+                <p style={{ color: '#666' }}>
+                  You need to claim a ship first before accessing the repair
+                  bay.
+                </p>
+              </div>
+            </GlassCard>
+          ) : (
+            <GlassCard>
+              <div style={styles.repairBaySection}>
+                <h2 style={styles.sectionTitle}>Repair Bay</h2>
 
-              <div style={styles.repairShipInfo}>
-                <h3 style={styles.shipName}>{userShip.name}</h3>
+                <div style={styles.repairShipInfo}>
+                  <h3 style={styles.shipName}>{userShip.name}</h3>
 
-                <div style={styles.healthBars}>
-                  <div>
-                    <div style={styles.healthLabel}>
-                      <span>🛡️ Hull</span>
-                      <span>
-                        {userShip.hull}/{userShip.maxHull}
-                      </span>
+                  <div style={styles.healthBars}>
+                    <div>
+                      <div style={styles.healthLabel}>
+                        <span>🛡️ Hull</span>
+                        <span>
+                          {userShip.hull}/{userShip.maxHull}
+                        </span>
+                      </div>
+                      <div style={styles.healthBar}>
+                        <div
+                          style={{
+                            ...styles.healthFill,
+                            width: `${
+                              (userShip.hull / userShip.maxHull) * 100
+                            }%`,
+                            background:
+                              userShip.hull < userShip.maxHull * 0.3
+                                ? '#ef4444'
+                                : '#22c55e',
+                          }}
+                        />
+                      </div>
                     </div>
-                    <div style={styles.healthBar}>
-                      <div
-                        style={{
-                          ...styles.healthFill,
-                          width: `${(userShip.hull / userShip.maxHull) * 100}%`,
-                          background:
-                            userShip.hull < userShip.maxHull * 0.3
-                              ? '#ef4444'
-                              : '#22c55e',
-                        }}
-                      />
+
+                    <div>
+                      <div style={styles.healthLabel}>
+                        <span>⚡ Shields</span>
+                        <span>
+                          {userShip.shields}/{userShip.maxShields}
+                        </span>
+                      </div>
+                      <div style={styles.healthBar}>
+                        <div
+                          style={{
+                            ...styles.healthFill,
+                            width: `${
+                              (userShip.shields / userShip.maxShields) * 100
+                            }%`,
+                            background:
+                              userShip.shields < userShip.maxShields * 0.3
+                                ? '#ef4444'
+                                : '#00d9ff',
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
+                </div>
 
-                  <div>
-                    <div style={styles.healthLabel}>
-                      <span>⚡ Shields</span>
-                      <span>
-                        {userShip.shields}/{userShip.maxShields}
-                      </span>
-                    </div>
-                    <div style={styles.healthBar}>
-                      <div
-                        style={{
-                          ...styles.healthFill,
-                          width: `${
-                            (userShip.shields / userShip.maxShields) * 100
-                          }%`,
-                          background:
-                            userShip.shields < userShip.maxShields * 0.3
-                              ? '#ef4444'
-                              : '#00d9ff',
-                        }}
-                      />
-                    </div>
+                <div style={styles.repairOptions}>
+                  <h3 style={styles.repairOptionsTitle}>Repair Options</h3>
+                  <div style={styles.repairGrid}>
+                    {REPAIR_OPTIONS.map((option) => {
+                      const cost = calculateRepairCost(userShip, option)
+                      const hasModule = hasQuantumModule()
+                      const canAfford = user.money >= cost
+                      const canRepair = option.requiresQuantumModule
+                        ? hasModule
+                        : canAfford
+
+                      return (
+                        <button
+                          key={option.speed}
+                          onClick={() => handleRepair(option)}
+                          disabled={!canRepair}
+                          style={{
+                            ...styles.repairOptionCard,
+                            opacity: canRepair ? 1 : 0.5,
+                            cursor: canRepair ? 'pointer' : 'not-allowed',
+                          }}
+                        >
+                          <div style={styles.repairOptionIcon}>
+                            {option.icon}
+                          </div>
+                          <div style={styles.repairOptionLabel}>
+                            {option.label}
+                          </div>
+                          <div style={styles.repairOptionTime}>
+                            {option.timeMinutes > 0
+                              ? `${option.timeMinutes} min`
+                              : 'Instant'}
+                          </div>
+                          <div style={styles.repairOptionCost}>
+                            {option.requiresQuantumModule ? (
+                              <>
+                                <div>1x Quantum Module</div>
+                                {!hasModule && (
+                                  <div
+                                    style={{
+                                      fontSize: '11px',
+                                      color: '#ef4444',
+                                    }}
+                                  >
+                                    Not in inventory
+                                  </div>
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                <div>{cost.toLocaleString()} chips</div>
+                                {!canAfford && cost > 0 && (
+                                  <div
+                                    style={{
+                                      fontSize: '11px',
+                                      color: '#ef4444',
+                                    }}
+                                  >
+                                    Insufficient funds
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
+
+                {(userShip.hull < userShip.maxHull ||
+                  userShip.shields < userShip.maxShields) && (
+                  <div style={styles.damageWarning}>
+                    <span style={{ fontSize: '20px' }}>⚠️</span>
+                    <span>
+                      Your ship has sustained damage. Repair recommended before
+                      your next mission.
+                    </span>
+                  </div>
+                )}
+
+                {userShip.hull === 0 && (
+                  <div style={styles.criticalWarning}>
+                    <span style={{ fontSize: '20px' }}>🚨</span>
+                    <span>
+                      CRITICAL: Hull integrity at 0%. Risk of losing all cargo!
+                    </span>
+                  </div>
+                )}
               </div>
-
-              <div style={styles.repairOptions}>
-                <h3 style={styles.repairOptionsTitle}>Repair Options</h3>
-                <div style={styles.repairGrid}>
-                  {REPAIR_OPTIONS.map((option) => {
-                    const cost = calculateRepairCost(userShip, option)
-                    const hasModule = hasQuantumModule()
-                    const canAfford = user.money >= cost
-                    const canRepair = option.requiresQuantumModule
-                      ? hasModule
-                      : canAfford
-
-                    return (
-                      <button
-                        key={option.speed}
-                        onClick={() => handleRepair(option)}
-                        disabled={!canRepair}
-                        style={{
-                          ...styles.repairOptionCard,
-                          opacity: canRepair ? 1 : 0.5,
-                          cursor: canRepair ? 'pointer' : 'not-allowed',
-                        }}
-                      >
-                        <div style={styles.repairOptionIcon}>{option.icon}</div>
-                        <div style={styles.repairOptionLabel}>
-                          {option.label}
-                        </div>
-                        <div style={styles.repairOptionTime}>
-                          {option.timeMinutes > 0
-                            ? `${option.timeMinutes} min`
-                            : 'Instant'}
-                        </div>
-                        <div style={styles.repairOptionCost}>
-                          {option.requiresQuantumModule ? (
-                            <>
-                              <div>1x Quantum Module</div>
-                              {!hasModule && (
-                                <div
-                                  style={{ fontSize: '11px', color: '#ef4444' }}
-                                >
-                                  Not in inventory
-                                </div>
-                              )}
-                            </>
-                          ) : (
-                            <>
-                              <div>{cost.toLocaleString()} chips</div>
-                              {!canAfford && cost > 0 && (
-                                <div
-                                  style={{ fontSize: '11px', color: '#ef4444' }}
-                                >
-                                  Insufficient funds
-                                </div>
-                              )}
-                            </>
-                          )}
-                        </div>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {(userShip.hull < userShip.maxHull ||
-                userShip.shields < userShip.maxShields) && (
-                <div style={styles.damageWarning}>
-                  <span style={{ fontSize: '20px' }}>⚠️</span>
-                  <span>
-                    Your ship has sustained damage. Repair recommended before
-                    your next mission.
-                  </span>
-                </div>
-              )}
-
-              {userShip.hull === 0 && (
-                <div style={styles.criticalWarning}>
-                  <span style={{ fontSize: '20px' }}>🚨</span>
-                  <span>
-                    CRITICAL: Hull integrity at 0%. Risk of losing all cargo!
-                  </span>
-                </div>
-              )}
-            </div>
-          </GlassCard>
+            </GlassCard>
+          )}
         </div>
       )}
 

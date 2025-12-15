@@ -90,6 +90,25 @@ const Jail = () => {
     return () => clearInterval(interval)
   }, [])
 
+  // Handle release from jail - show notification and let component re-render to visitor view
+  useEffect(() => {
+    // Track previous state to detect transition
+    const wasInJail = sessionStorage.getItem('wasInJail') === 'true'
+
+    if (wasInJail && !isInJail && jailTimeRemaining === 0) {
+      // Just released from jail
+      alert(
+        '🎉 RELEASED FROM JAIL\n\nYou have served your time! You are now free to leave or visit other inmates.'
+      )
+      sessionStorage.removeItem('wasInJail')
+    }
+
+    // Track current state
+    if (isInJail) {
+      sessionStorage.setItem('wasInJail', 'true')
+    }
+  }, [isInJail, jailTimeRemaining])
+
   if (!user) return null
 
   const formatTime = (seconds: number): string => {

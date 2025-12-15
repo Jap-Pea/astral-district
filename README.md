@@ -50,7 +50,7 @@ src/
 - **Casino** - Test your luck with casino games
 - **Gym Training** - Improve your character stats
 - **Item Management** - Buy and use items from shops
-- **SPace Travel System** - Visit different star systems via Stargate
+- **Space Travel System** - Visit different star systems via Stargate
 - **User Profile** - Track your progress and stats
 - **Responsive Design** - Works on desktop and mobile
 

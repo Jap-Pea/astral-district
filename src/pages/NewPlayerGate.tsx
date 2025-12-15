@@ -1,7 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState, useContext, useEffect } from 'react'
 import NewPlayerSetup from './NewPlayerSetup'
 import type { NewPlayerResult } from './NewPlayerSetup'
 import { useUser } from '../hooks/useUser'
+import { SelfDestructButton } from '../components/SelfDestructButton'
+import { MessageContext } from '../context/messageCore'
 
 // Welcome bonus items that new players receive
 const STARTER_ITEMS = [
@@ -65,7 +67,52 @@ export default function NewPlayerGate({
 }) {
   const { user, updateUser } = useUser()
   const [showResetConfirm, setShowResetConfirm] = useState(false)
-  const [showFinalScreen, setShowFinalScreen] = useState(false)
+  const messageContext = useContext(MessageContext)
+  const [showWelcomeHelper, setShowWelcomeHelper] = useState(false)
+  const [showShipyardHelper, setShowShipyardHelper] = useState(false)
+
+  // Hide helper when all messages are read
+  useEffect(() => {
+    if (
+      showWelcomeHelper &&
+      messageContext &&
+      messageContext.unreadCount === 0
+    ) {
+      const timer = setTimeout(() => setShowWelcomeHelper(false), 100)
+      return () => clearTimeout(timer)
+    }
+  }, [showWelcomeHelper, messageContext])
+
+  // Show shipyard helper after welcome message is read
+  useEffect(() => {
+    if (
+      showWelcomeHelper &&
+      messageContext &&
+      messageContext.unreadCount === 0 &&
+      user &&
+      !user.ship
+    ) {
+      // Wait a moment after message is read, then show shipyard helper
+      const timer = setTimeout(() => {
+        setShowWelcomeHelper(false)
+        setShowShipyardHelper(true)
+      }, 300)
+      return () => clearTimeout(timer)
+    }
+  }, [showWelcomeHelper, messageContext, user])
+
+  // Toggle body class to block interactions when helper is active
+  useEffect(() => {
+    if (
+      (showWelcomeHelper && messageContext && messageContext.unreadCount > 0) ||
+      (showShipyardHelper && user && !user.ship)
+    ) {
+      document.body.classList.add('helper-active')
+    } else {
+      document.body.classList.remove('helper-active')
+    }
+    return () => document.body.classList.remove('helper-active')
+  }, [showWelcomeHelper, showShipyardHelper, messageContext, user])
 
   const handleResetGame = () => {
     // Clear localStorage
@@ -147,22 +194,7 @@ export default function NewPlayerGate({
       equippedWeapon: null,
       equippedArmor: null,
 
-      ship: {
-        id: 'starter_pod',
-        name: 'Starter Pod',
-        tier: 'basic',
-        modelPath: '/models/starter-ship.glb',
-        price: 0,
-        hull: 50,
-        maxHull: 50,
-        shields: 25,
-        maxShields: 25,
-        cargoCapacity: 5,
-        cargo: [],
-        fuelTypes: ['ion'],
-        travelTimeReduction: 0,
-        description: 'A basic starter vessel. Better than nothing!',
-      },
+      ship: undefined,
 
       activeMissions: [],
       completedMissions: [],
@@ -173,12 +205,19 @@ export default function NewPlayerGate({
       isInHospital: false,
       hospitalTime: 0,
 
+      // Docking state - new players start docked at Earth
+      isDocked: true,
+      dockingLocation: 'earth',
+      isDocking: false,
+      dockingTimeRemaining: 0,
+
       lastAction: new Date(),
       lastEnergyRegen: new Date(),
       lastHealthRegen: new Date(),
       createdAt: new Date(),
 
       tutorialCompleted: false,
+      hasReadWelcomeMessage: false,
 
       perks: result.perks,
 
@@ -193,8 +232,16 @@ export default function NewPlayerGate({
       },
     })
 
-    // Show final screen after character creation
-    setShowFinalScreen(true)
+    // Add welcome message from District Commander
+    setTimeout(() => {
+      messageContext?.addMessage({
+        from: 'District Commander',
+        subject: 'Welcome to the Astral District',
+        message: `Welcome, ${result.username}. Your neural interface is now online. The Astral District is a place of opportunity... and danger.\n\n💰 Starting Credits: $5,000\n❤️ Health: ${result.perks.maxHealth}\n⚡ Energy: 100\n📦 2 Starter Items added to inventory\n\nYour first task: Visit the Shipyard to claim your vessel. Every pilot needs a ship to navigate the stars.\n\n"In the District, opportunity and danger walk hand in hand. Choose your path wisely."`,
+        isSystemMessage: true,
+      })
+      setShowWelcomeHelper(true)
+    }, 500)
 
     console.log(`🎉 New player created: ${result.username} (${playerId})`)
   }
@@ -235,259 +282,212 @@ export default function NewPlayerGate({
     return <NewPlayerSetup onComplete={handleSetupComplete} />
   }
 
-  // Final screen after character creation
-  if (showFinalScreen && user) {
-    return (
-      <div
-        style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0, 0, 0, 0.95)',
-          backdropFilter: 'blur(10px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999,
-          animation: 'fadeIn 0.8s ease-out',
-        }}
-      >
-        <style>{`
+  // User is fully set up - show the app with welcome helper if needed
+  return (
+    <>
+      {children}
+
+      {/* Welcome Helper - small tooltip pointing to messages */}
+      {showWelcomeHelper &&
+        messageContext &&
+        messageContext.unreadCount > 0 && (
+          <>
+            {/* Block all pointer events except Messages button and modal contents */}
+            <style>{`
+              body.helper-active * {
+                pointer-events: none !important;
+              }
+              body.helper-active button[data-messages-button],
+              body.helper-active button[data-messages-button] *,
+              body.helper-active [style*="z-index: 9998"],
+              body.helper-active [style*="z-index: 9998"] *,
+              body.helper-active [style*="z-index: 9999"],
+              body.helper-active [style*="z-index: 9999"] * {
+                pointer-events: auto !important;
+              }
+            `}</style>
+
+            <div
+              style={{
+                position: 'fixed',
+                top: '300px',
+                left: '320px',
+                zIndex: 10001,
+                animation:
+                  'fadeIn 0.5s ease-out, bounce 2s ease-in-out infinite',
+                pointerEvents: 'none',
+              }}
+            >
+              <style>{`
+            @keyframes fadeIn {
+              from { opacity: 0; }
+              to { opacity: 1; }
+            }
+            @keyframes bounce {
+              0%, 100% { transform: translateY(0); }
+              50% { transform: translateY(-8px); }
+            }
+          `}</style>
+              <div
+                style={{
+                  background:
+                    'linear-gradient(135deg, rgba(74, 158, 255, 0.95), rgba(30, 77, 122, 0.95))',
+                  border: '2px solid #4a9eff',
+                  borderRadius: '12px',
+                  padding: '1rem 1.5rem',
+                  boxShadow: '0 8px 30px rgba(74, 158, 255, 0.5)',
+                  maxWidth: '280px',
+                  position: 'relative',
+                }}
+              >
+                {/* Arrow pointing up to Messages button */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: '30px',
+                    top: '-10px',
+                    width: 0,
+                    height: 0,
+                    borderLeft: '10px solid transparent',
+                    borderRight: '10px solid transparent',
+                    borderBottom: '10px solid #4a9eff',
+                  }}
+                />
+                <div
+                  style={{
+                    fontSize: '1.5rem',
+                    marginBottom: '0.5rem',
+                    textAlign: 'center',
+                  }}
+                >
+                  📬
+                </div>
+                <div
+                  style={{
+                    fontSize: '1.1rem',
+                    fontWeight: 'bold',
+                    color: '#fff',
+                    marginBottom: '0.5rem',
+                    textAlign: 'center',
+                  }}
+                >
+                  You Have a Message!
+                </div>
+                <div
+                  style={{
+                    fontSize: '0.9rem',
+                    color: '#e0f2fe',
+                    lineHeight: '1.4',
+                    textAlign: 'center',
+                  }}
+                >
+                  The District Commander has sent you an important message.
+                  <br />
+                  <strong>Click the Messages button to read it.</strong>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+      {/* Shipyard Helper - guide to claim ship */}
+      {showShipyardHelper && user && !user.ship && (
+        <>
+          {/* Block all pointer events except Shipyard button and claim ship button */}
+          <style>{`
+            body.helper-active * {
+              pointer-events: none !important;
+            }
+            body.helper-active button[data-shipyard-button],
+            body.helper-active button[data-shipyard-button] *,
+            body.helper-active button[data-claim-ship-button],
+            body.helper-active button[data-claim-ship-button] * {
+              pointer-events: auto !important;
+            }
+          `}</style>
+
+          <div
+            style={{
+              position: 'fixed',
+              top: '250px',
+              right: '50%',
+              transform: 'translateX(50%)',
+              zIndex: 10001,
+              animation: 'fadeIn 0.5s ease-out, bounce 2s ease-in-out infinite',
+              pointerEvents: 'none',
+            }}
+          >
+            <style>{`
           @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
           }
-          @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+          @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
           }
         `}</style>
-        <div
-          style={{
-            maxWidth: '700px',
-            padding: '3rem',
-            background:
-              'linear-gradient(135deg, rgba(10, 37, 64, 0.95), rgba(6, 24, 41, 0.95))',
-            border: '2px solid #1e4d7a',
-            borderRadius: '1rem',
-            textAlign: 'center',
-            color: '#6ba3bf',
-            animation: 'slideUp 0.8s ease-out',
-            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.9)',
-          }}
-        >
-          <div
-            style={{
-              fontSize: '5rem',
-              marginBottom: '1.5rem',
-              filter: 'drop-shadow(0 0 20px rgba(74, 158, 255, 0.5))',
-            }}
-          >
-            🌌
-          </div>
-          <h1
-            style={{
-              fontSize: '3rem',
-              marginBottom: '1rem',
-              color: '#4a9eff',
-              textShadow: '0 0 30px rgba(74, 158, 255, 0.6)',
-              fontWeight: 'bold',
-            }}
-          >
-            Welcome to the District
-          </h1>
-          <p
-            style={{
-              fontSize: '1.4rem',
-              marginBottom: '2.5rem',
-              lineHeight: '1.6',
-              color: '#8ab4cf',
-            }}
-          >
-            <strong style={{ color: '#4a9eff' }}>{user.username}</strong>, your
-            neural interface is now online.
-            <br />
-            The Astral District awaits.
-          </p>
-          <div
-            style={{
-              textAlign: 'left',
-              background: 'rgba(74, 158, 255, 0.08)',
-              padding: '2rem',
-              borderRadius: '0.75rem',
-              marginBottom: '2.5rem',
-              border: '1px solid rgba(74, 158, 255, 0.2)',
-            }}
-          >
-            <h3
-              style={{
-                marginBottom: '1.5rem',
-                color: '#4a9eff',
-                fontSize: '1.3rem',
-                textAlign: 'center',
-              }}
-            >
-              ⚡ Initial Loadout
-            </h3>
             <div
               style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '1rem',
+                background:
+                  'linear-gradient(135deg, rgba(147, 51, 234, 0.95), rgba(79, 70, 229, 0.95))',
+                border: '2px solid #a855f7',
+                borderRadius: '12px',
+                padding: '1.5rem 2rem',
+                boxShadow: '0 8px 30px rgba(147, 51, 234, 0.5)',
+                maxWidth: '320px',
+                position: 'relative',
               }}
             >
+              {/* Arrow pointing up */}
               <div
                 style={{
-                  padding: '1rem',
-                  background: 'rgba(255, 255, 255, 0.03)',
-                  borderRadius: '0.5rem',
+                  position: 'absolute',
+                  left: '50%',
+                  top: '-10px',
+                  transform: 'translateX(-50%)',
+                  width: 0,
+                  height: 0,
+                  borderLeft: '10px solid transparent',
+                  borderRight: '10px solid transparent',
+                  borderBottom: '10px solid #a855f7',
+                }}
+              />
+              <div
+                style={{
+                  fontSize: '2rem',
+                  marginBottom: '0.75rem',
+                  textAlign: 'center',
                 }}
               >
-                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>
-                  💰
-                </div>
-                <div
-                  style={{
-                    fontSize: '1.5rem',
-                    fontWeight: 'bold',
-                    color: '#4a9eff',
-                  }}
-                >
-                  ${user.money?.toLocaleString()}
-                </div>
-                <div style={{ fontSize: '0.85rem', opacity: 0.8 }}>Credits</div>
+                🚀
               </div>
               <div
                 style={{
-                  padding: '1rem',
-                  background: 'rgba(255, 255, 255, 0.03)',
-                  borderRadius: '0.5rem',
+                  fontSize: '1.2rem',
+                  fontWeight: 'bold',
+                  color: '#fff',
+                  marginBottom: '0.5rem',
+                  textAlign: 'center',
                 }}
               >
-                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>
-                  ❤️
-                </div>
-                <div
-                  style={{
-                    fontSize: '1.5rem',
-                    fontWeight: 'bold',
-                    color: '#ef4444',
-                  }}
-                >
-                  {user.maxHealth}
-                </div>
-                <div style={{ fontSize: '0.85rem', opacity: 0.8 }}>
-                  Health Points
-                </div>
+                Claim Your Ship
               </div>
               <div
                 style={{
-                  padding: '1rem',
-                  background: 'rgba(255, 255, 255, 0.03)',
-                  borderRadius: '0.5rem',
+                  fontSize: '0.95rem',
+                  color: '#e9d5ff',
+                  lineHeight: '1.5',
+                  textAlign: 'center',
                 }}
               >
-                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>
-                  ⚡
-                </div>
-                <div
-                  style={{
-                    fontSize: '1.5rem',
-                    fontWeight: 'bold',
-                    color: '#fbbf24',
-                  }}
-                >
-                  {user.maxEnergy}
-                </div>
-                <div style={{ fontSize: '0.85rem', opacity: 0.8 }}>Energy</div>
-              </div>
-              <div
-                style={{
-                  padding: '1rem',
-                  background: 'rgba(255, 255, 255, 0.03)',
-                  borderRadius: '0.5rem',
-                }}
-              >
-                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>
-                  🚀
-                </div>
-                <div
-                  style={{
-                    fontSize: '1.5rem',
-                    fontWeight: 'bold',
-                    color: '#8b5cf6',
-                  }}
-                >
-                  Starter Pod
-                </div>
-                <div style={{ fontSize: '0.85rem', opacity: 0.8 }}>Ship</div>
-              </div>
-            </div>
-            <div
-              style={{
-                marginTop: '1.5rem',
-                padding: '1rem',
-                background: 'rgba(34, 197, 94, 0.1)',
-                borderRadius: '0.5rem',
-                border: '1px solid rgba(34, 197, 94, 0.3)',
-              }}
-            >
-              <div style={{ fontSize: '0.95rem', color: '#6ba3bf' }}>
-                🎒 <strong>{STARTER_ITEMS.length} Starter Items</strong> added
-                to inventory
+                Every pilot needs a vessel. Click the <strong>Shipyard</strong>{' '}
+                button above to claim your starter ship.
               </div>
             </div>
           </div>
-          <div
-            style={{
-              marginBottom: '2rem',
-              fontSize: '1rem',
-              lineHeight: '1.6',
-              color: '#6ba3bf',
-              fontStyle: 'italic',
-              opacity: 0.9,
-            }}
-          >
-            "In the District, opportunity and danger walk hand in hand. Choose
-            your path wisely."
-          </div>
-          <button
-            onClick={() => setShowFinalScreen(false)}
-            style={{
-              padding: '1.25rem 3rem',
-              fontSize: '1.3rem',
-              fontWeight: 'bold',
-              background: 'linear-gradient(135deg, #22c55e, #16a34a)',
-              border: 'none',
-              borderRadius: '0.75rem',
-              color: 'white',
-              cursor: 'pointer',
-              transition: 'all 0.3s',
-              boxShadow: '0 8px 30px rgba(34, 197, 94, 0.4)',
-              textTransform: 'uppercase',
-              letterSpacing: '1px',
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)'
-              e.currentTarget.style.boxShadow =
-                '0 12px 40px rgba(34, 197, 94, 0.6)'
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = 'translateY(0) scale(1)'
-              e.currentTarget.style.boxShadow =
-                '0 8px 30px rgba(34, 197, 94, 0.4)'
-            }}
-          >
-            Enter The District →
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  // User is fully set up - show the app with reset option
-  return (
-    <>
-      {children}
+        </>
+      )}
 
       {/* Reset Game Confirmation Modal */}
       {showResetConfirm && (
@@ -594,46 +594,6 @@ export default function NewPlayerGate({
             </div>
           </div>
         </div>
-      )}
-
-      {/* Floating Reset Button (bottom right corner) - Only in development */}
-      {import.meta.env.DEV && (
-        <button
-          onClick={() => setShowResetConfirm(true)}
-          style={{
-            position: 'fixed',
-            bottom: '20px',
-            right: '20px',
-            padding: '0.75rem',
-            background: '#ef4444',
-            border: 'none',
-            borderRadius: '50%',
-            color: 'white',
-            cursor: 'pointer',
-            fontSize: '1.5rem',
-            width: '50px',
-            height: '50px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 20px rgba(239, 68, 68, 0.4)',
-            zIndex: 9999,
-            transition: 'all 0.3s',
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.transform = 'scale(1.1)'
-            e.currentTarget.style.boxShadow =
-              '0 6px 30px rgba(239, 68, 68, 0.6)'
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.transform = 'scale(1)'
-            e.currentTarget.style.boxShadow =
-              '0 4px 20px rgba(239, 68, 68, 0.4)'
-          }}
-          title="Reset Game Data"
-        >
-          🗑️
-        </button>
       )}
     </>
   )

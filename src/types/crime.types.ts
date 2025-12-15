@@ -1,7 +1,10 @@
+export type CrimeLocation = 'docked' | 'orbital' | 'both'
+
 export interface Crime {
   id: string
   name: string
   description: string
+  location: CrimeLocation // Where this crime can be performed
 
   // Requirements
   heartRateCost: number

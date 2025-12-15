@@ -1,6 +1,7 @@
 // src/pages/StarGate.tsx
 import React, { useState, useEffect } from 'react'
 import { useUser } from '../hooks/useUser'
+import { useNotification } from '../hooks/useNotification'
 import HyperJumpSwitch from '../components/ui/HyperJumpSwitch'
 
 type FuelType = 'ion' | 'fusion' | 'quantum'
@@ -179,7 +180,10 @@ const StarGate = () => {
     setTravelTimeRemaining,
     useFuel,
     getFuelCount,
+    startDocking,
   } = useUser()
+
+  const { addNotification } = useNotification()
 
   const [selectedPlanet, setSelectedPlanet] = useState<Planet | null>(null)
   const [selectedFuelType, setSelectedFuelType] = useState<FuelType>('ion')
@@ -191,17 +195,36 @@ const StarGate = () => {
     if (!isTraveling || travelTimeRemaining <= 0) return
 
     const interval = setInterval(() => {
-      setTravelTimeRemaining((prev) => {
+      setTravelTimeRemaining((prev: number) => {
         const newTime = prev - 1
         if (newTime <= 0) {
           // Arrive at destination
           setIsTraveling(false)
           if (user) {
-            updateUser({ location: destination })
+            const planetName = PLANETS.find((p) => p.id === destination)?.name
+            updateUser({
+              location: destination,
+              isDocked: false, // Arrive in orbit
+              dockingLocation: null,
+            })
+
+            // Send notification about arrival
+            addNotification({
+              type: 'docking',
+              title: `Arrived at ${planetName}`,
+              message: `You are currently in orbit. Would you like to dock at the station?`,
+              action: {
+                label: 'Initiate Docking',
+                callback: () => {
+                  startDocking()
+                },
+              },
+            })
+
+            setMessage(
+              `🚀 Arrived at ${planetName}! Check notifications for docking options.`
+            )
           }
-          setMessage(
-            `🚀 Arrived at ${PLANETS.find((p) => p.id === destination)?.name}!`
-          )
           return 0
         }
         return newTime
@@ -217,6 +240,8 @@ const StarGate = () => {
     updateUser,
     setIsTraveling,
     setTravelTimeRemaining,
+    addNotification,
+    startDocking,
   ])
 
   if (!user) return null

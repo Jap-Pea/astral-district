@@ -24,6 +24,11 @@ export interface UserContextType {
   spendMoney: (amount: number) => boolean
   // Experience management
   addExperience: (amount: number) => void
+  // Crime and Combat tracking
+  incrementCrimeTally: (field: 'success' | 'failed' | 'critical') => void
+  incrementCombatTally: (
+    field: 'attacks' | 'defends' | 'kills' | 'deaths' | 'escapes'
+  ) => void
   // Jail & Hospital
   sendToJail: (duration: number) => void
   sendToHospital: (duration: number) => void
@@ -65,6 +70,9 @@ export interface UserContextType {
   // Fuel management
   getFuelCount: (fuelType: 'ion' | 'fusion' | 'quantum') => number
   useFuel: (fuelType: 'ion' | 'fusion' | 'quantum', amount: number) => boolean
+  // Docking management
+  startDocking: () => boolean
+  startUndocking: () => boolean
 }
 
 export const UserContext = createContext<UserContextType | undefined>(undefined)

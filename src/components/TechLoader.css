@@ -1,0 +1,163 @@
+.tech-loader-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.tech-loader-svg {
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+}
+
+#browser {
+  overflow: hidden;
+}
+
+.grid-line {
+  stroke: #222;
+  stroke-width: 0.5;
+}
+
+.browser-frame {
+  fill: #111;
+  stroke: #666;
+  stroke-width: 1;
+  filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.9));
+}
+
+.browser-top {
+  fill: #1a1a1a;
+}
+
+.loading-title {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 20px;
+  font-weight: bold;
+  fill: #00ccff !important;
+  filter: drop-shadow(0 0 10px rgba(0, 204, 255, 0.8));
+  pointer-events: none;
+}
+
+.loading-subtitle {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 12px;
+  fill: #8ab4cf !important;
+  pointer-events: none;
+}
+
+.skeleton {
+  fill: #2d2d2d;
+  rx: 4;
+  ry: 4;
+  animation: pulse 1.8s ease-in-out infinite;
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.02));
+}
+
+.skeleton.progress-bar {
+  fill: #00ccff;
+  filter: drop-shadow(0 0 8px rgba(0, 204, 255, 0.8));
+  animation: none;
+}
+
+/* Text overlay positioned on top of SVG */
+.loader-text-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+  text-align: center;
+  pointer-events: none;
+  width: 400px;
+}
+
+.loader-title {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #00ccff;
+  text-shadow: 0 0 20px rgba(0, 204, 255, 0.8);
+  margin: 0 0 1rem 0;
+  line-height: 1.2;
+}
+
+.loader-subtitle {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 1.2rem;
+  color: #8ab4cf;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.loader-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(0, 204, 255, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 30px;
+}
+
+.loader-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #00ccff, #00ffff);
+  box-shadow: 0 0 10px rgba(0, 204, 255, 0.8);
+  transition: width 0.5s ease-out;
+}
+
+@keyframes pulse {
+  0% {
+    fill: #2d2d2d;
+  }
+  50% {
+    fill: #505050;
+  }
+  100% {
+    fill: #2d2d2d;
+  }
+}
+
+.trace-flow {
+  stroke-width: 1;
+  fill: none;
+  stroke-dasharray: 120 600;
+  stroke-dashoffset: 720;
+  animation: flow 5s linear infinite;
+  opacity: 0.95;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 8px currentColor) blur(0.5px);
+  color: #00ccff;
+}
+
+.trace-flow:nth-child(1) {
+  stroke: url(#traceGradient1);
+}
+
+.trace-flow:nth-child(2) {
+  stroke: url(#traceGradient2);
+}
+
+.trace-flow:nth-child(3) {
+  stroke: url(#traceGradient3);
+}
+
+.trace-flow:nth-child(4) {
+  stroke: url(#traceGradient4);
+}
+
+@keyframes flow {
+  from {
+    stroke-dashoffset: 720;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}

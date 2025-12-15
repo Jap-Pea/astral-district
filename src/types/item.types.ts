@@ -21,8 +21,11 @@ export interface Item {
   description: string
   type: ItemType
   rarity: ItemRarity
+  category?: string
   image?: string
-  marketValue: number
+  imageUrl?: string
+  marketValue?: number
+  value?: number // Deprecated, use marketValue instead
   stats?: ItemStats
   effects?: ItemEffects
   stackable: boolean
@@ -44,6 +47,7 @@ export interface ItemEffects {
   energyRestore?: number
   heartRateRestore?: number
   heatRestore?: number
+  heatReduction?: number
   strengthBoost?: number
   defenseBoost?: number
   speedBoost?: number

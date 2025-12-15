@@ -3,12 +3,20 @@ import { theme } from '../../styles/theme'
 
 interface PageContainerProps {
   children: React.ReactNode
+  transparent?: boolean
 }
 
-export const PageContainer: React.FC<PageContainerProps> = ({ children }) => {
+export const PageContainer: React.FC<PageContainerProps> = ({
+  children,
+  transparent = false,
+}) => {
   const containerStyle: React.CSSProperties = {
+    position: 'relative',
+    zIndex: 3,
     minHeight: '100vh',
-    background: `
+    background: transparent
+      ? 'transparent'
+      : `
       radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
       radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.15) 0%, transparent 50%),
       ${theme.colors.background.primary}

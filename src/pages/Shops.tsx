@@ -22,19 +22,26 @@ interface Shop {
   name: string
   description: string
   icon: string
+  shopkeeperImage?: string
+  shopkeeperDialogue?: string
   items: ShopItem[]
 }
 
 const SHOPS: Shop[] = [
   {
     id: 'pharmacy',
-    name: 'City Pharmacy',
+    name: 'Pharmacy',
     description: 'Medical supplies, first aid, and health items',
-    icon: '💊',
+    icon: <img src="/images/icons/health.png"></img>,
+    shopkeeperImage: '/images/shopkeepers/pharmacist.jpg',
+    shopkeeperDialogue:
+      "Welcome! Need something to patch yourself up? I've got the best medical supplies in the district.",
     items: [
-      { itemId: 'consumable_health_pack', stock: 10, restockDaily: 10 },
-      { itemId: 'consumable_medkit', stock: 20, restockDaily: 20 },
-      { itemId: 'consumable_nano_med', stock: 5, restockDaily: 5 },
+      { itemId: 'health_pack', stock: 10, restockDaily: 10 },
+      { itemId: 'medkit', stock: 20, restockDaily: 20 },
+      { itemId: 'nano_med', stock: 5, restockDaily: 5 },
+      { itemId: 'bandage', stock: 30, restockDaily: 30 },
+      { itemId: 'trauma_kit', stock: 3, restockDaily: 3 },
     ],
   },
   {
@@ -42,11 +49,14 @@ const SHOPS: Shop[] = [
     name: 'The Black Market',
     description: 'Weapons, lockpicks, and illegal items',
     icon: '🔫',
+    shopkeeperImage: '/images/shopkeepers/blackmarket.png',
+    shopkeeperDialogue:
+      "Psst... looking for something special? I've got what you need. No questions asked, no records kept.",
     items: [
-      { itemId: 'weapon_knife', stock: 5, restockDaily: 5 },
-      { itemId: 'weapon_bat', stock: 3, restockDaily: 3 },
-      { itemId: 'weapon_plasma_blade', stock: 1, restockDaily: 1 },
-      { itemId: 'weapon_pistol', stock: 15, restockDaily: 15 },
+      { itemId: 'plasma_rifle', stock: 5, restockDaily: 5 },
+      { itemId: 'ion_cannon', stock: 3, restockDaily: 3 },
+      { itemId: 'laser_pistol', stock: 1, restockDaily: 1 },
+      { itemId: 'frag_grenade', stock: 15, restockDaily: 15 },
     ],
   },
   {
@@ -54,9 +64,12 @@ const SHOPS: Shop[] = [
     name: 'Street Wear',
     description: 'Clothing, armor, and protective gear',
     icon: '👕',
+    shopkeeperImage: '/images/shopkeepers/clothing.jpg',
+    shopkeeperDialogue:
+      "Hey! Looking for some fresh threads? We've got style and protection all in one. Try something on!",
     items: [
-      { itemId: 'armor_leather_jacket', stock: 8, restockDaily: 8 },
-      { itemId: 'armor_kevlar_vest', stock: 2, restockDaily: 2 },
+      { itemId: 'leather_jacket', stock: 8, restockDaily: 8 },
+      { itemId: 'kevlar_vest', stock: 2, restockDaily: 2 },
     ],
   },
   {
@@ -64,9 +77,13 @@ const SHOPS: Shop[] = [
     name: 'Quick Stop',
     description: 'Basic supplies and everyday items',
     icon: '🏪',
+    shopkeeperImage: '/images/shopkeepers/cornerstore.png',
+    shopkeeperDialogue:
+      "Welcome to Quick Stop! Grab what you need and let's get you back out there. We're open 24/7!",
     items: [
-      { itemId: 'consumable_energy_drink', stock: 30, restockDaily: 30 },
-      { itemId: 'consumable_protein_shake', stock: 10, restockDaily: 10 },
+      { itemId: 'energy_drink', stock: 30, restockDaily: 30 },
+      { itemId: 'protein_shake', stock: 10, restockDaily: 10 },
+      { itemId: 'coffee', stock: 50, restockDaily: 50 },
     ],
   },
   {
@@ -74,6 +91,9 @@ const SHOPS: Shop[] = [
     name: "Rusty's Pawn Shop",
     description: 'Buy and sell used items, fence stolen goods',
     icon: '🗑️',
+    shopkeeperImage: '/images/shopkeepers/pawnshop.png',
+    shopkeeperDialogue:
+      "Welcome to Rusty's! Everything here has a history. Looking to buy or sell? Either way, I'll make it worth your while.",
     items: [
       { itemId: 'weapon_heavy_pistol', stock: 3, restockDaily: 3 },
       { itemId: 'armor_tactical_suit', stock: 5, restockDaily: 5 },
@@ -85,20 +105,20 @@ const SHOPS: Shop[] = [
     name: 'Iron Paradise Supplements',
     description: 'Fitness supplements and performance enhancers',
     icon: '🏋️',
+    shopkeeperImage: '/images/shopkeepers/gym.png',
+    shopkeeperDialogue:
+      'Yo! Ready to level up your game? These supplements will push your limits beyond what you thought possible!',
     items: [
-      { itemId: 'consumable_speed_serum', stock: 5, restockDaily: 5 },
-      { itemId: 'consumable_focus_pills', stock: 15, restockDaily: 15 },
+      { itemId: 'speed_serum', stock: 5, restockDaily: 5 },
+      { itemId: 'focus_pills', stock: 15, restockDaily: 15 },
+      { itemId: 'neural_enhancer', stock: 3, restockDaily: 3 },
     ],
   },
 ]
 
 const Shops = () => {
-  const {
-    user,
-    spendMoney,
-    addItemToInventory,
-    removeItemFromInventory,
-  } = useUser()
+  const { user, spendMoney, addItemToInventory, removeItemFromInventory } =
+    useUser()
   const { sellItem, getItemDefaults } = useItem()
 
   const [activeShop, setActiveShop] = useState<string | null>(null)
@@ -106,6 +126,36 @@ const Shops = () => {
   const [purchasesToday, setPurchasesToday] = useState(0)
   const [message, setMessage] = useState<string | null>(null)
   const [view, setView] = useState<'buy' | 'sell'>('buy')
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    // Set shops background based on active shop
+    const layoutContainer = document.querySelector(
+      '.layout-container'
+    ) as HTMLElement
+    if (layoutContainer) {
+      if (activeShop === 'pharmacy') {
+        layoutContainer.style.background =
+          "url('/images/shops/pharmacy.jpg') center/cover fixed"
+      } else if (activeShop) {
+        // Other shops - keep shops.jpg for now
+        layoutContainer.style.background =
+          "url('/images/shops/shops.jpg') center/cover fixed"
+      } else {
+        // Lobby view
+        layoutContainer.style.background =
+          "url('/images/shops/shops.jpg') center/cover fixed"
+      }
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (layoutContainer) {
+        layoutContainer.style.background =
+          "url('/images/dashboard-bg.jpg') center/cover fixed"
+      }
+    }
+  }, [activeShop])
 
   useEffect(() => {
     const stocks: Record<string, ShopItem[]> = {}
@@ -118,6 +168,11 @@ const Shops = () => {
   if (!user) return null
 
   const MAX_DAILY_PURCHASES = 50
+
+  // Helper to get item price (supports both value and marketValue)
+  const getItemPrice = (item: Item): number => {
+    return item.marketValue ?? item.value ?? 0
+  }
 
   const handleBuyItem = (shopId: string, itemId: string) => {
     if (purchasesToday >= MAX_DAILY_PURCHASES) {
@@ -137,13 +192,21 @@ const Shops = () => {
       return setMessage('❌ Out of stock!')
     }
 
-    if (user.money < (item.value ?? 0)) {
+    const itemPrice = getItemPrice(item)
+
+    if (user.money < itemPrice) {
       return setMessage(
-        `❌ Not enough money! Need $${(item.value ?? 0).toLocaleString()}`
+        `❌ Not enough money! Need $${itemPrice.toLocaleString()}`
       )
     }
 
-    if (spendMoney(item.value ?? 0)) {
+    console.log(
+      `[Shops] Before purchase - Money: $${user.money}, Item cost: $${itemPrice}`
+    )
+    const spendSuccess = spendMoney(itemPrice)
+    console.log(`[Shops] spendMoney result:`, spendSuccess)
+
+    if (spendSuccess) {
       // Update stock
       setShopStocks((prev) => ({
         ...prev,
@@ -155,10 +218,20 @@ const Shops = () => {
       setPurchasesToday((prev) => prev + 1)
 
       // Add to inventory
-      addItemToInventory(itemId, 1)
+      const addSuccess = addItemToInventory(itemId, 1)
+      console.log(
+        `[Shops] addItemToInventory result:`,
+        addSuccess,
+        `for item:`,
+        itemId
+      )
+      console.log(`[Shops] Current inventory:`, user.inventory)
+      console.log(
+        `[Shops] After purchase - Money should be: $${user.money - itemPrice}`
+      )
 
       setMessage(
-        `✅ Purchased ${item.name} for $${(item.value ?? 0).toLocaleString()}!`
+        `✅ Purchased ${item.name} for $${itemPrice.toLocaleString()}!`
       )
     }
   }
@@ -181,7 +254,9 @@ const Shops = () => {
     const result = sellItem(inventoryItem)
     if (result.success && result.amount) {
       setMessage(
-        `✅ Sold ${inventoryItem.item.name} for $${result.amount.toLocaleString()}!`
+        `✅ Sold ${
+          inventoryItem.item.name
+        } for $${result.amount.toLocaleString()}!`
       )
     } else {
       setMessage('❌ Failed to sell item')
@@ -285,12 +360,62 @@ const Shops = () => {
       </button>
 
       <div style={styles.shopHeader}>
-        <div>
-          <div style={{ fontSize: '48px', marginBottom: '0.5rem' }}>
-            {currentShop.icon}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '2rem',
+          }}
+        >
+          <div>
+            <h1 style={styles.shopTitle}>{currentShop.name}</h1>
+            <p style={styles.shopSubtitle}>{currentShop.description}</p>
           </div>
-          <h1 style={styles.shopTitle}>{currentShop.name}</h1>
-          <p style={styles.shopSubtitle}>{currentShop.description}</p>
+          {currentShop.shopkeeperImage && (
+            <img
+              src={currentShop.shopkeeperImage}
+              alt={`${currentShop.name} shopkeeper`}
+              style={{
+                width: '200px',
+                height: '200px',
+                objectFit: 'cover' as const,
+                borderRadius: '12px',
+                border: '3px solid #333',
+              }}
+            />
+          )}
+          {currentShop.shopkeeperDialogue && (
+            <div
+              style={{
+                position: 'relative' as const,
+                background: '#1a1a1a',
+                border: '2px solid #f59e0b',
+                borderRadius: '12px',
+                padding: '1.5rem',
+                maxWidth: '300px',
+                fontSize: '14px',
+                lineHeight: '1.6',
+                color: '#fff',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
+              }}
+            >
+              <div
+                style={{
+                  position: 'absolute' as const,
+                  left: '-10px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  width: 0,
+                  height: 0,
+                  borderTop: '10px solid transparent',
+                  borderBottom: '10px solid transparent',
+                  borderRight: '10px solid #f59e0b',
+                }}
+              />
+              {currentShop.shopkeeperDialogue}
+            </div>
+          )}
         </div>
 
         <div style={styles.moneyDisplay}>
@@ -302,6 +427,9 @@ const Shops = () => {
           </div>
         </div>
       </div>
+
+      {/* Message above buy/sell buttons */}
+      {message && <div style={styles.message}>{message}</div>}
 
       {/* Buy/Sell Toggle */}
       <div style={styles.viewToggle}>
@@ -340,116 +468,147 @@ const Shops = () => {
               return null
             }
 
+            const isExpanded = expandedItems.has(shopItem.itemId)
+
             return (
               <div key={shopItem.itemId} style={styles.itemCard}>
-                <div style={styles.itemHeader}>
-                  <div>
+                <div style={styles.compactItemLayout}>
+                  {item.imageUrl && (
+                    <div style={styles.compactImageContainer}>
+                      <img
+                        src={item.imageUrl}
+                        alt={item.name}
+                        style={styles.itemImage}
+                      />
+                    </div>
+                  )}
+                  <div style={styles.compactInfo}>
                     <div style={styles.itemName}>{item.name}</div>
-                    <div style={styles.itemType}>{item.type.toUpperCase()}</div>
+                    <div style={styles.compactPriceStock}>
+                      <span style={styles.priceText}>
+                        ${getItemPrice(item).toLocaleString()}
+                      </span>
+                      <span style={styles.stockText}>
+                        Stock:{' '}
+                        <span
+                          style={{
+                            color: shopItem.stock > 0 ? '#22c55e' : '#ef4444',
+                            fontWeight: 'bold',
+                          }}
+                        >
+                          {shopItem.stock}
+                        </span>
+                      </span>
+                    </div>
                   </div>
-                  <div
-                    style={{
-                      ...styles.rarityBadge,
-                      color: getRarityColor(item.rarity),
-                      borderColor: getRarityColor(item.rarity),
-                    }}
-                  >
-                    {item.rarity.toUpperCase()}
-                  </div>
-                </div>
-
-                {/* description (always show, with fallback) */}
-                <p style={styles.itemDesc}>
-                  {item.description ?? 'No description available.'}
-                </p>
-
-                {/* Unified stats/effects renderer */}
-                {(item.stats || item.effects) && (
-                  <div style={styles.itemStats}>
-                    {/** Merge stats + effects so we show whatever keys exist on the item */}
-                    {Object.entries({
-                      ...(item.stats ?? {}),
-                      ...(item.effects ?? {}),
-                    }).map(([key, val]) => {
-                      // Human-friendly labels
-                      const LABELS: Record<string, string> = {
-                        damage: 'Damage',
-                        defense: 'Defense',
-                        accuracy: 'Accuracy',
-                        healthRestore: 'Health',
-                        energyRestore: 'Energy',
-                        strengthBoost: 'Strength',
-                        dexterityBoost: 'Dexterity',
-                        speedBoost: 'Speed',
-                        defenseBoost: 'Defense',
-                        heartRateRestore: 'Heart Rate',
-                        duration: 'Duration (min)',
+                  <div style={styles.compactActions}>
+                    <button
+                      onClick={() =>
+                        setExpandedItems((prev) => {
+                          const newSet = new Set(prev)
+                          if (isExpanded) {
+                            newSet.delete(shopItem.itemId)
+                          } else {
+                            newSet.add(shopItem.itemId)
+                          }
+                          return newSet
+                        })
                       }
+                      style={styles.detailsBtn}
+                    >
+                      {isExpanded ? 'HIDE DETAILS' : 'DETAILS'}
+                    </button>
 
-                      const label =
-                        LABELS[key] ??
-                        key
-                          .replace(/([A-Z])/g, ' $1')
-                          .replace(/^./, (s) => s.toUpperCase())
-
-                      // format value (percent for accuracy, + sign for restores, otherwise raw)
-                      const formatValue = (k: string, v: any) => {
-                        if (k === 'accuracy') return `${v}%`
-                        if (k.endsWith('Restore')) return `+${v}`
-                        if (k.endsWith('Boost')) return `+${v}`
-                        return v
+                    <button
+                      onClick={() => handleBuyItem(activeShop, shopItem.itemId)}
+                      disabled={
+                        shopItem.stock <= 0 ||
+                        purchasesToday >= MAX_DAILY_PURCHASES
                       }
-
-                      return (
-                        <StatRow
-                          key={key}
-                          label={label}
-                          value={formatValue(key, val)}
-                        />
-                      )
-                    })}
-                  </div>
-                )}
-
-                <div style={styles.itemFooter}>
-                  <div style={styles.stockInfo}>
-                    <span style={{ color: '#888' }}>Stock:</span>
-                    <span
                       style={{
-                        color: shopItem.stock > 0 ? '#22c55e' : '#ef4444',
-                        fontWeight: 'bold',
-                        marginLeft: '0.5rem',
+                        ...styles.buyBtn,
+                        opacity:
+                          shopItem.stock <= 0 ||
+                          purchasesToday >= MAX_DAILY_PURCHASES
+                            ? 0.5
+                            : 1,
+                        cursor:
+                          shopItem.stock <= 0 ||
+                          purchasesToday >= MAX_DAILY_PURCHASES
+                            ? 'not-allowed'
+                            : 'pointer',
                       }}
                     >
-                      {shopItem.stock}
-                    </span>
+                      BUY - ${getItemPrice(item).toLocaleString()}
+                    </button>
                   </div>
-
-                  <button
-                    onClick={() => handleBuyItem(activeShop, shopItem.itemId)}
-                    disabled={
-                      shopItem.stock <= 0 ||
-                      purchasesToday >= MAX_DAILY_PURCHASES
-                    }
-                    style={{
-                      ...styles.buyBtn,
-                      opacity:
-                        shopItem.stock <= 0 ||
-                        purchasesToday >= MAX_DAILY_PURCHASES
-                          ? 0.5
-                          : 1,
-                      cursor:
-                        shopItem.stock <= 0 ||
-                        purchasesToday >= MAX_DAILY_PURCHASES
-                          ? 'not-allowed'
-                          : 'pointer',
-                    }}
-                  >
-                    {shopItem.stock <= 0
-                      ? 'OUT OF STOCK'
-                      : `BUY - $${(item.value ?? 0).toLocaleString()}`}
-                  </button>
                 </div>
+
+                {/* Expanded details section */}
+                {isExpanded && (
+                  <div style={styles.expandedDetails}>
+                    {item.imageUrl && (
+                      <div style={styles.expandedImageContainer}>
+                        <img
+                          src={item.imageUrl}
+                          alt={item.name}
+                          style={styles.expandedImage}
+                        />
+                      </div>
+                    )}
+                    <p style={styles.itemDesc}>
+                      {item.description ?? 'No description available.'}
+                    </p>
+
+                    {/* Unified stats/effects renderer */}
+                    {(item.stats || item.effects) && (
+                      <div style={styles.itemStats}>
+                        {Object.entries({
+                          ...(item.stats ?? {}),
+                          ...(item.effects ?? {}),
+                        }).map(([key, val]) => {
+                          const LABELS: Record<string, string> = {
+                            damage: 'Damage',
+                            defense: 'Defense',
+                            accuracy: 'Accuracy',
+                            healthRestore: 'Health',
+                            energyRestore: 'Energy',
+                            strengthBoost: 'Strength',
+                            dexterityBoost: 'Dexterity',
+                            speedBoost: 'Speed',
+                            defenseBoost: 'Defense',
+                            heartRateRestore: 'Heart Rate',
+                            duration: 'Duration (min)',
+                          }
+
+                          const label =
+                            LABELS[key] ??
+                            key
+                              .replace(/([A-Z])/g, ' $1')
+                              .replace(/^./, (s) => s.toUpperCase())
+
+                          const formatValue = (
+                            k: string,
+                            v: number | string
+                          ) => {
+                            if (k === 'accuracy') return `${v}%`
+                            if (k.endsWith('Restore')) return `+${v}`
+                            if (k.endsWith('Boost')) return `+${v}`
+                            return v
+                          }
+
+                          return (
+                            <StatRow
+                              key={key}
+                              label={label}
+                              value={formatValue(key, val as number | string)}
+                            />
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )
           })}
@@ -460,20 +619,26 @@ const Shops = () => {
       {view === 'sell' && (
         <div style={styles.itemsGrid}>
           {user.inventory
-            // treat undefined tradeable as true (only filter out when explicitly false)
-            .filter(
-              (invItem) => {
-                const { isTradeable } = getItemDefaults(invItem)
-                return isTradeable && !invItem.equipped
-              }
-            )
+            .filter((invItem) => {
+              const { isTradeable } = getItemDefaults(invItem)
+              return isTradeable && !invItem.equipped
+            })
             .map((invItem) => {
-              const sellPrice = Math.floor((invItem.item.value ?? 0) * 0.7)
-
+              const sellPrice = Math.floor(getItemPrice(invItem.item) * 0.7)
+              const isExpanded = expandedItems.has(invItem.item.id)
               return (
                 <div key={invItem.item.id} style={styles.itemCard}>
-                  <div style={styles.itemHeader}>
-                    <div>
+                  <div style={styles.compactItemLayout}>
+                    {invItem.item.imageUrl && (
+                      <div style={styles.compactImageContainer}>
+                        <img
+                          src={invItem.item.imageUrl}
+                          alt={invItem.item.name}
+                          style={styles.itemImage}
+                        />
+                      </div>
+                    )}
+                    <div style={styles.compactInfo}>
                       <div style={styles.itemName}>
                         {invItem.item.name}
                         {invItem.quantity > 1 && (
@@ -488,74 +653,115 @@ const Shops = () => {
                           </span>
                         )}
                       </div>
-                      <div style={styles.itemType}>
-                        {invItem.item.type.toUpperCase()}
+                      <div style={styles.compactPriceStock}>
+                        <span style={styles.priceText}>
+                          Sell: ${sellPrice.toLocaleString()}
+                        </span>
+                        <span style={styles.stockText}>
+                          Owned:{' '}
+                          <span
+                            style={{ color: '#22c55e', fontWeight: 'bold' }}
+                          >
+                            {invItem.quantity}
+                          </span>
+                        </span>
                       </div>
                     </div>
-                    <div
-                      style={{
-                        ...styles.rarityBadge,
-                        color: getRarityColor(invItem.item.rarity),
-                        borderColor: getRarityColor(invItem.item.rarity),
-                      }}
-                    >
-                      {invItem.item.rarity.toUpperCase()}
+                    <div style={styles.compactActions}>
+                      <button
+                        onClick={() =>
+                          setExpandedItems((prev) => {
+                            const newSet = new Set(prev)
+                            if (isExpanded) {
+                              newSet.delete(invItem.item.id)
+                            } else {
+                              newSet.add(invItem.item.id)
+                            }
+                            return newSet
+                          })
+                        }
+                        style={styles.detailsBtn}
+                      >
+                        {isExpanded ? 'HIDE DETAILS' : 'DETAILS'}
+                      </button>
+                      <button
+                        onClick={() => handleSellItem(invItem.item.id)}
+                        style={styles.sellBtn}
+                      >
+                        SELL - ${sellPrice.toLocaleString()}
+                      </button>
                     </div>
                   </div>
-
-                  <p style={styles.itemDesc}>{invItem.item.description}</p>
-
-                  <div style={styles.itemFooter}>
-                    <div style={styles.priceCompare}>
-                      <div style={{ fontSize: '12px', color: '#888' }}>
-                        Market Value:
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '14px',
-                          color: '#666',
-                          textDecoration: 'line-through',
-                        }}
-                      >
-                        ${(invItem.item.value ?? 0).toLocaleString()}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '12px',
-                          color: '#888',
-                          marginTop: '0.25rem',
-                        }}
-                      >
-                        Sell For:
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '18px',
-                          color: '#22c55e',
-                          fontWeight: 'bold',
-                        }}
-                      >
-                        ${sellPrice.toLocaleString()}
-                      </div>
+                  {/* Expanded details section */}
+                  {isExpanded && (
+                    <div style={styles.expandedDetails}>
+                      {invItem.item.imageUrl && (
+                        <div style={styles.expandedImageContainer}>
+                          <img
+                            src={invItem.item.imageUrl}
+                            alt={invItem.item.name}
+                            style={styles.expandedImage}
+                          />
+                        </div>
+                      )}
+                      <p style={styles.itemDesc}>
+                        {invItem.item.description ??
+                          'No description available.'}
+                      </p>
+                      {/* Unified stats/effects renderer */}
+                      {(invItem.item.stats || invItem.item.effects) && (
+                        <div style={styles.itemStats}>
+                          {Object.entries({
+                            ...(invItem.item.stats ?? {}),
+                            ...(invItem.item.effects ?? {}),
+                          }).map(([key, val]) => {
+                            const LABELS: Record<string, string> = {
+                              damage: 'Damage',
+                              defense: 'Defense',
+                              accuracy: 'Accuracy',
+                              healthRestore: 'Health',
+                              energyRestore: 'Energy',
+                              strengthBoost: 'Strength',
+                              dexterityBoost: 'Dexterity',
+                              speedBoost: 'Speed',
+                              defenseBoost: 'Defense',
+                              heartRateRestore: 'Heart Rate',
+                              duration: 'Duration (min)',
+                            }
+                            const label =
+                              LABELS[key] ??
+                              key
+                                .replace(/([A-Z])/g, ' $1')
+                                .replace(/^./, (s) => s.toUpperCase())
+                            const formatValue = (
+                              k: string,
+                              v: number | string
+                            ) => {
+                              if (k === 'accuracy') return `${v}%`
+                              if (k.endsWith('Restore')) return `+${v}`
+                              if (k.endsWith('Boost')) return `+${v}`
+                              return v
+                            }
+                            return (
+                              <StatRow
+                                key={key}
+                                label={label}
+                                value={formatValue(key, val as number | string)}
+                              />
+                            )
+                          })}
+                        </div>
+                      )}
                     </div>
-
-                    <button
-                      onClick={() => handleSellItem(invItem.item.id)}
-                      style={styles.sellBtn}
-                    >
-                      SELL
-                    </button>
-                  </div>
+                  )}
                 </div>
               )
             })}
 
-          {user.inventory.filter(
-            (invItem) => {
-              const { isTradeable } = getItemDefaults(invItem)
-              return isTradeable && !invItem.equipped
-            }
-          ).length === 0 && (
+          {user.inventory.filter((invItem) => {
+            const { isTradeable } = getItemDefaults(invItem)
+            return isTradeable && !invItem.equipped
+          }).length === 0 && (
             <div style={styles.emptyState}>
               <div style={{ fontSize: '48px', marginBottom: '1rem' }}>📦</div>
               <div style={{ fontSize: '18px', color: '#888' }}>
@@ -565,8 +771,6 @@ const Shops = () => {
           )}
         </div>
       )}
-
-      {message && <div style={styles.message}>{message}</div>}
 
       {purchasesToday >= MAX_DAILY_PURCHASES && view === 'buy' && (
         <div style={styles.warningBanner}>
@@ -726,8 +930,8 @@ const styles = {
     justifyContent: 'center',
   } as React.CSSProperties,
   toggleBtn: {
-    padding: '1rem 2rem',
-    border: '2px solid',
+    padding: '1rem 1rem',
+    border: '1px solid',
     borderRadius: '8px',
     color: '#fff',
     fontSize: '14px',
@@ -738,18 +942,97 @@ const styles = {
     letterSpacing: '1px',
   } as React.CSSProperties,
   itemsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+    display: 'flex',
+    flexDirection: 'column' as const,
     gap: '1.5rem',
-    maxWidth: '1400px',
+    maxWidth: '800px',
     margin: '0 auto',
   } as React.CSSProperties,
   itemCard: {
     background: '#1a1a1a',
     border: '1px solid #333',
     borderRadius: '8px',
-    padding: '1.5rem',
+    padding: '0.75rem 1rem',
     transition: 'all 0.2s',
+  } as React.CSSProperties,
+  compactItemLayout: {
+    display: 'flex',
+    gap: '1rem',
+    alignItems: 'center',
+  } as React.CSSProperties,
+  compactImageContainer: {
+    width: '60px',
+    height: '60px',
+    flexShrink: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: '#0a0a0a',
+    borderRadius: '6px',
+    overflow: 'hidden',
+  } as React.CSSProperties,
+  compactInfo: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '0.5rem',
+  } as React.CSSProperties,
+  compactPriceStock: {
+    display: 'flex',
+    gap: '1rem',
+    alignItems: 'center',
+  } as React.CSSProperties,
+  priceText: {
+    fontSize: '16px',
+    fontWeight: 'bold',
+    color: '#f59e0b',
+  } as React.CSSProperties,
+  stockText: {
+    fontSize: '14px',
+    color: '#888',
+  } as React.CSSProperties,
+  compactActions: {
+    display: 'flex',
+    gap: '0.5rem',
+    marginLeft: 'auto',
+  } as React.CSSProperties,
+  detailsBtn: {
+    background: '#333',
+    border: '1px solid #555',
+    borderRadius: '6px',
+    padding: '0.75rem 1rem',
+    color: '#fff',
+    fontSize: '12px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '1px',
+    flex: 1,
+  } as React.CSSProperties,
+  expandedDetails: {
+    marginTop: '1rem',
+    padding: '1.5rem',
+    background: '#0a0a0a',
+    border: '2px solid #f59e0b',
+    borderRadius: '8px',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.8)',
+  } as React.CSSProperties,
+  itemImageContainer: {
+    width: '100%',
+    height: '150px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: '1rem',
+    background: '#0a0a0a',
+    borderRadius: '6px',
+    overflow: 'hidden',
+  } as React.CSSProperties,
+  itemImage: {
+    maxWidth: '100%',
+    maxHeight: '100%',
+    objectFit: 'contain' as const,
   } as React.CSSProperties,
   itemHeader: {
     display: 'flex',
@@ -822,16 +1105,16 @@ const styles = {
   } as React.CSSProperties,
   priceCompare: { textAlign: 'left' as const } as React.CSSProperties,
   message: {
-    marginTop: '2rem',
-    padding: '1.5rem',
+    marginTop: '1rem',
+    padding: '0.75rem 2rem',
     background: '#1a1a1a',
     border: '2px solid #f59e0b',
     borderRadius: '8px',
     textAlign: 'center' as const,
-    fontSize: '16px',
+    fontSize: '14px',
     fontWeight: 'bold',
-    maxWidth: '800px',
-    margin: '2rem auto 0',
+    maxWidth: '500px',
+    margin: '1rem auto 0',
   } as React.CSSProperties,
   warningBanner: {
     marginTop: '2rem',
@@ -848,6 +1131,22 @@ const styles = {
     gridColumn: '1 / -1',
     padding: '4rem',
     textAlign: 'center' as const,
+  } as React.CSSProperties,
+  expandedImageContainer: {
+    width: '100%',
+    height: '250px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: '1.5rem',
+    background: '#0a0a0a',
+    borderRadius: '6px',
+    overflow: 'hidden',
+  } as React.CSSProperties,
+  expandedImage: {
+    maxWidth: '100%',
+    maxHeight: '100%',
+    objectFit: 'contain' as const,
   } as React.CSSProperties,
 }
 

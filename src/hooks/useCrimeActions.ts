@@ -17,6 +17,7 @@ export const useCrimeActions = () => {
     updateUser,
     sendToJail,
     sendToHospital,
+    incrementCrimeTally,
   } = useUser()
   const { showModal } = useModal()
 
@@ -51,6 +52,15 @@ export const useCrimeActions = () => {
     const crimeResult = attemptCrime(crime)
     setResult(crimeResult)
 
+    // Track crime statistics
+    if (crimeResult.critical) {
+      incrementCrimeTally('critical')
+    } else if (crimeResult.success) {
+      incrementCrimeTally('success')
+    } else {
+      incrementCrimeTally('failed')
+    }
+
     if (crimeResult.injured && crimeResult.healthLost > 0) {
       const newHealth = Math.max(user.health - crimeResult.healthLost, 0)
       updateUser({ health: newHealth })
@@ -77,7 +87,10 @@ export const useCrimeActions = () => {
     increaseHeartRate(hrIncrease)
     increaseHeat(heatIncrease)
 
-    const newHeartRate = Math.min(user.heartRate + hrIncrease, user.maxHeartRate)
+    const newHeartRate = Math.min(
+      user.heartRate + hrIncrease,
+      user.maxHeartRate
+    )
     const newHeat = Math.min(user.heat + heatIncrease, user.maxHeat)
 
     setTimeout(() => {

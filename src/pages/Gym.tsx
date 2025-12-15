@@ -355,17 +355,17 @@ const Gym = () => {
               marginTop: '1rem',
             }}
           >
-            <div>✨ +{currentMembership.trainingBonus}% Training Bonus</div>
-            <div>⚡ -{currentMembership.energyCostReduction}% Energy Cost</div>
+            <div> +{currentMembership.trainingBonus}% Training Bonus</div>
+            <div> -{currentMembership.energyCostReduction}% Energy Cost</div>
           </div>
         </div>
       )}
 
       {/* Training Options */}
       <div style={{ marginBottom: '3rem' }}>
-        <h2 style={{ fontSize: '24px', marginBottom: '1rem', color: '#fff' }}>
-          Training
-        </h2>
+        <h2
+          style={{ fontSize: '24px', marginBottom: '1rem', color: '#fff' }}
+        ></h2>
         <div
           style={{
             display: 'grid',
@@ -490,7 +490,7 @@ const Gym = () => {
                   }}
                 >
                   {isTraining
-                    ? '🏋️ Training...'
+                    ? 'Training...'
                     : !canAfford
                     ? 'Not Enough Energy'
                     : 'Train'}
@@ -588,15 +588,14 @@ const Gym = () => {
                   }}
                 >
                   <div style={{ marginBottom: '0.5rem' }}>
-                    ✨ <strong>+{membership.trainingBonus}%</strong> training
-                    gains
+                    <strong>+{membership.trainingBonus}%</strong> training gains
                   </div>
                   <div style={{ marginBottom: '0.5rem' }}>
-                    ⚡ <strong>-{membership.energyCostReduction}%</strong>{' '}
-                    energy cost
+                    <strong>-{membership.energyCostReduction}%</strong> energy
+                    cost
                   </div>
                   <div>
-                    📅 <strong>{membership.duration}</strong> days duration
+                    <strong>{membership.duration}</strong> days duration
                   </div>
                 </div>
 

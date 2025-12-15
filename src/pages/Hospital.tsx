@@ -100,15 +100,28 @@ const Hospital = () => {
     return () => clearInterval(interval)
   }, [])
 
-  // Don't auto-redirect when visiting hospital
+  // Handle release from hospital - show notification and let component re-render to visitor view
   useEffect(() => {
-    if (!isInHospital && hospitalTimeRemaining === 0 && actionResult === null) {
-      const timer = setTimeout(() => {
-        // Only navigate if we're truly released, not just visiting
-      }, 100)
-      return () => clearTimeout(timer)
+    // Track previous state to detect transition
+    const wasInHospital = sessionStorage.getItem('wasInHospital') === 'true'
+
+    if (wasInHospital && !isInHospital && hospitalTimeRemaining === 0) {
+      // Just released from hospital
+      showModal({
+        title: 'Released from Hospital',
+        message:
+          '✅ You have recovered! You are now free to leave or visit other patients.',
+        type: 'success',
+        icon: '🏥',
+      })
+      sessionStorage.removeItem('wasInHospital')
     }
-  }, [isInHospital, hospitalTimeRemaining, navigate, actionResult])
+
+    // Track current state
+    if (isInHospital) {
+      sessionStorage.setItem('wasInHospital', 'true')
+    }
+  }, [isInHospital, hospitalTimeRemaining, showModal])
 
   if (!user) return null
 

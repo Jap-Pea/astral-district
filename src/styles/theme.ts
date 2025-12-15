@@ -2,7 +2,7 @@ export const theme = {
   colors: {
     // Background colors - deep space blacks and navy
     background: {
-      primary: '#000000', // Pure black like deep space
+      primary: 'transparent', // Transparent to show gif background
       secondary: '#0a0a15', // Very dark navy
       card: 'rgba(15, 15, 30, 0.6)', // Dark blue-black with transparency
       cardHover: 'rgba(20, 20, 40, 0.7)', // Slightly lighter on hover

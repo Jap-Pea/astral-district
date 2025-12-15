@@ -25,7 +25,7 @@ import {
   computeEscapeRoll,
 } from '../utils/decisionHelpers'
 import { UserContext } from './userCore'
-import { getItemById } from '../services/mockData/items'
+import { getItemById } from '../data/items/index'
 import type { InventoryItem } from '../types/item.types'
 
 interface UserProviderProps {
@@ -39,6 +39,26 @@ const reviveUserFromStorage = (raw: any): User => {
     ...raw,
     lastAction: raw.lastAction ? reviveDate(raw.lastAction) : new Date(),
     createdAt: raw.createdAt ? reviveDate(raw.createdAt) : new Date(),
+    // Ensure crimesTally exists with defaults
+    crimesTally: raw.crimesTally || {
+      total: 0,
+      success: 0,
+      failed: 0,
+      critical: 0,
+    },
+    // Ensure combatTally exists with defaults
+    combatTally: raw.combatTally || {
+      attacks: 0,
+      defends: 0,
+      kills: 0,
+      deaths: 0,
+      escapes: 0,
+    },
+    // Ensure docking state exists with defaults (for backward compatibility)
+    isDocked: raw.isDocked !== undefined ? raw.isDocked : true,
+    dockingLocation: raw.dockingLocation || raw.location || 'earth',
+    isDocking: raw.isDocking || false,
+    dockingTimeRemaining: raw.dockingTimeRemaining || 0,
   }
 
   if (Array.isArray(raw?.inventory)) {
@@ -58,7 +78,12 @@ const reviveUserFromStorage = (raw: any): User => {
             takenAt: reviveDate(l.takenAt),
             dueDate: reviveDate(l.dueDate),
             paidAt: l.paidAt ? reviveDate(l.paidAt) : undefined,
-            paidAmount: typeof l.paidAmount === 'number' ? l.paidAmount : l.paidAmount ? Number(l.paidAmount) : undefined,
+            paidAmount:
+              typeof l.paidAmount === 'number'
+                ? l.paidAmount
+                : l.paidAmount
+                ? Number(l.paidAmount)
+                : undefined,
           }))
         : [],
       pastLoans: Array.isArray(lh.pastLoans)
@@ -67,7 +92,12 @@ const reviveUserFromStorage = (raw: any): User => {
             takenAt: reviveDate(l.takenAt),
             dueDate: reviveDate(l.dueDate),
             paidAt: l.paidAt ? reviveDate(l.paidAt) : undefined,
-            paidAmount: typeof l.paidAmount === 'number' ? l.paidAmount : l.paidAmount ? Number(l.paidAmount) : undefined,
+            paidAmount:
+              typeof l.paidAmount === 'number'
+                ? l.paidAmount
+                : l.paidAmount
+                ? Number(l.paidAmount)
+                : undefined,
           }))
         : [],
     }
@@ -81,7 +111,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   const [isLoading, setIsLoading] = useState(true)
   const userRef = useRef<User | null>(null)
   const userExists = useMemo(() => !!user, [user])
-  
+
   // Keep ref in sync with state
   useEffect(() => {
     userRef.current = user
@@ -123,6 +153,9 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   // Persist user to localStorage on change
   useEffect(() => {
     if (user) {
+      console.log(
+        `[UserContext] Saving user to localStorage - Money: $${user.money}`
+      )
       localStorage.setItem('astralUser', JSON.stringify(user))
     }
   }, [user])
@@ -137,6 +170,11 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         if (!prev) return prev
 
         const newEnergy = Math.min(prev.energy + 5, prev.maxEnergy)
+
+        // Only update if energy actually changed
+        if (newEnergy === prev.energy) return prev
+
+        console.log(`⚡ Energy regen: ${prev.energy} → ${newEnergy}`)
 
         return {
           ...prev,
@@ -163,6 +201,8 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         const healAmount = isInHospital ? 5 : 1
         const newHealth = Math.min(prev.health + healAmount, prev.maxHealth)
 
+        console.log(`❤️ Health regen: ${prev.health} → ${newHealth}`)
+
         // record last tick time for UI countdowns
         setHealthLastTick(Date.now())
 
@@ -187,6 +227,14 @@ export const UserProvider = ({ children }: UserProviderProps) => {
 
         const newHeartRate = Math.max(prev.heartRate - 2, 50)
         const newHeat = Math.max(prev.heat - 2, 0) // drops 2 every 5 min
+
+        // Only update if values actually changed
+        if (newHeartRate === prev.heartRate && newHeat === prev.heat)
+          return prev
+
+        console.log(
+          `💓 HR: ${prev.heartRate} → ${newHeartRate}, 🔥 Heat: ${prev.heat} → ${newHeat}`
+        )
 
         return {
           ...prev,
@@ -250,6 +298,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
 
   const updateUser = useCallback(
     (updates: Partial<User>) => {
+      console.log(`[updateUser] Called with updates:`, updates)
       setUser((prev) => {
         if (!prev) {
           // If there's no previous user, create a new one with the updates
@@ -257,11 +306,17 @@ export const UserProvider = ({ children }: UserProviderProps) => {
           return updates as User
         }
 
+        console.log(
+          `[updateUser] prev.money: ${prev.money}, updates.money: ${updates.money}`
+        )
+
         // Merge updates, then enforce global caps and sane ranges
         const merged: User = {
           ...prev,
           ...updates,
         }
+
+        console.log(`[updateUser] merged.money: ${merged.money}`)
 
         // Enforce energy cap (game design: energy max is 100 unless purchased later)
         if (merged.maxEnergy === undefined || merged.maxEnergy === null) {
@@ -370,7 +425,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       const clampMin = (v: number, min = 0) =>
         Math.max(min, Math.floor(v * multiplier))
 
-      // Enforce caps: energy cap max 100, heart rate cap max 180
+      // Enforce caps: energy cap max 100, heart rate cap max 180, heat cap max 100
       const scaledMaxEnergy = Math.min(100, clampMin(user.maxEnergy, 1))
       const scaledEnergy = Math.min(scaledMaxEnergy, clampMin(user.energy, 0))
       const scaledMaxHeartRate = Math.min(180, clampMin(user.maxHeartRate, 50))
@@ -378,6 +433,8 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         50,
         Math.min(scaledMaxHeartRate, clampMin(user.heartRate, 50))
       )
+      const scaledMaxHeat = Math.min(100, clampMin(user.maxHeat, 0))
+      const scaledHeat = Math.min(scaledMaxHeat, clampMin(user.heat, 0))
 
       updateUser({
         maxHealth: clampMin(user.maxHealth, 1),
@@ -386,8 +443,8 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         energy: scaledEnergy,
         maxHeartRate: scaledMaxHeartRate,
         heartRate: scaledHeartRate,
-        maxHeat: clampMin(user.maxHeat, 0),
-        heat: clampMin(user.heat, 0),
+        maxHeat: scaledMaxHeat,
+        heat: scaledHeat,
         money: clampMin(user.money, 0),
         level: Math.max(1, clampMin(user.level, 1)),
         experience: clampMin(user.experience, 0),
@@ -419,43 +476,55 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     })
   }, [])
 
-  const checkInjuryRisk = useCallback((
-    currentHeartRate?: number
-  ): { injured: boolean; damage: number } => {
-    let result = { injured: false, damage: 0 }
-    setUser((prev) => {
-      if (!prev) return prev
+  const checkInjuryRisk = useCallback(
+    (currentHeartRate?: number): { injured: boolean; damage: number } => {
+      let result = { injured: false, damage: 0 }
+      setUser((prev) => {
+        if (!prev) return prev
 
-      const heartRate = currentHeartRate ?? prev.heartRate
-      // Check if heart rate is above 90% of max (danger zone)
-      const dangerThreshold = prev.maxHeartRate * 0.9
-      if (heartRate <= dangerThreshold) return prev
-      
-      const decision = computeInjuryDecision(heartRate, prev.maxHealth, prev.maxHeartRate)
-      console.log('Injury check - HR:', heartRate, '/', prev.maxHeartRate, 'Decision:', decision)
+        const heartRate = currentHeartRate ?? prev.heartRate
+        // Check if heart rate is above 90% of max (danger zone)
+        const dangerThreshold = prev.maxHeartRate * 0.9
+        if (heartRate <= dangerThreshold) return prev
 
-      if (decision.injured) {
-        const damage = decision.damage
-        const newHealth = Math.max(prev.health - damage, 0)
-        result = { injured: true, damage }
+        const decision = computeInjuryDecision(
+          heartRate,
+          prev.maxHealth,
+          prev.maxHeartRate
+        )
+        console.log(
+          'Injury check - HR:',
+          heartRate,
+          '/',
+          prev.maxHeartRate,
+          'Decision:',
+          decision
+        )
 
-        if (newHealth < prev.maxHealth * 0.15 || newHealth === 0) {
-          // Hospital flag will be set after state update
-          result.injured = true
-          result.damage = damage
+        if (decision.injured) {
+          const damage = decision.damage
+          const newHealth = Math.max(prev.health - damage, 0)
+          result = { injured: true, damage }
+
+          if (newHealth < prev.maxHealth * 0.15 || newHealth === 0) {
+            // Hospital flag will be set after state update
+            result.injured = true
+            result.damage = damage
+          }
+
+          return {
+            ...prev,
+            health: newHealth,
+            lastAction: new Date(),
+          }
         }
 
-        return {
-          ...prev,
-          health: newHealth,
-          lastAction: new Date(),
-        }
-      }
-
-      return prev
-    })
-    return result
-  }, [])
+        return prev
+      })
+      return result
+    },
+    []
+  )
 
   const checkArrestRisk = useCallback((currentHeat?: number): boolean => {
     let arrested = false
@@ -560,20 +629,31 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   }, [])
 
   const spendMoney = useCallback((amount: number): boolean => {
-    let spent = false
+    let success = false
+
     setUser((prev) => {
       if (!prev || prev.money < amount) {
-        spent = false
+        console.log(
+          `[spendMoney] FAIL - prev.money: ${prev?.money}, amount: ${amount}`
+        )
+        success = false
         return prev
       }
-      spent = true
+
+      console.log(
+        `[spendMoney] SUCCESS - Deducting ${amount} from ${prev.money}, new: ${
+          prev.money - amount
+        }`
+      )
+      success = true
       return {
         ...prev,
         money: prev.money - amount,
         lastAction: new Date(),
       }
     })
-    return spent
+
+    return success
   }, [])
 
   const addExperience = useCallback((amount: number) => {
@@ -595,7 +675,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         const healthIncreasePerLevel = 25
         maxHealth += healthIncreasePerLevel
         health = Math.min(health + healthIncreasePerLevel, maxHealth)
-        
+
         stats.strength += 1
         stats.defense += 1
         stats.speed += 1
@@ -614,6 +694,39 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       }
     })
   }, [])
+
+  const incrementCrimeTally = useCallback(
+    (field: 'success' | 'failed' | 'critical') => {
+      setUser((prev) => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          crimesTally: {
+            ...prev.crimesTally,
+            total: prev.crimesTally.total + 1,
+            [field]: prev.crimesTally[field] + 1,
+          },
+        }
+      })
+    },
+    []
+  )
+
+  const incrementCombatTally = useCallback(
+    (field: 'attacks' | 'defends' | 'kills' | 'deaths' | 'escapes') => {
+      setUser((prev) => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          combatTally: {
+            ...prev.combatTally,
+            [field]: prev.combatTally[field] + 1,
+          },
+        }
+      })
+    },
+    []
+  )
 
   const addItemToInventory = (itemId: string, quantity: number): boolean => {
     if (!user) return false
@@ -816,6 +929,95 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   const [isTraveling, setIsTraveling] = useState(false)
   const [travelTimeRemaining, setTravelTimeRemaining] = useState(0)
 
+  // Docking countdown timer
+  useEffect(() => {
+    if (!user?.isDocking || !user || user.dockingTimeRemaining <= 0) return
+
+    const interval = setInterval(() => {
+      setUser((prev) => {
+        if (!prev || !prev.isDocking || prev.dockingTimeRemaining <= 0)
+          return prev
+
+        const newTime = prev.dockingTimeRemaining - 1
+
+        if (newTime <= 0) {
+          // Docking/undocking complete
+          console.log(`🚀 ${prev.isDocked ? 'Undocking' : 'Docking'} complete!`)
+          return {
+            ...prev,
+            isDocking: false,
+            dockingTimeRemaining: 0,
+            isDocked: !prev.isDocked, // Toggle docked state
+            dockingLocation: !prev.isDocked ? prev.location : null,
+          }
+        }
+
+        return {
+          ...prev,
+          dockingTimeRemaining: newTime,
+        }
+      })
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [user])
+
+  // Initiate docking procedure
+  const startDocking = useCallback(() => {
+    if (!user) return false
+    if (user.isDocked) {
+      console.warn('Already docked!')
+      return false
+    }
+    if (user.isDocking) {
+      console.warn('Already docking!')
+      return false
+    }
+
+    // Check heat level for docking time and fines
+    const highHeat = user.heat >= 80
+    const dockTime = highHeat ? 600 : 120 // 10min if high heat, 2min normal
+    const fine = highHeat ? 5000 : 100 // $5000 fine if high heat, $100 docking fee
+
+    if (user.money < fine) {
+      console.warn(`Not enough money to dock! Need $${fine}`)
+      return false
+    }
+
+    console.log(`🚀 Starting docking procedure... ${dockTime}s remaining`)
+
+    updateUser({
+      isDocking: true,
+      dockingTimeRemaining: dockTime,
+      money: user.money - fine,
+    })
+
+    return true
+  }, [user, updateUser])
+
+  // Initiate undocking procedure
+  const startUndocking = useCallback(() => {
+    if (!user) return false
+    if (!user.isDocked) {
+      console.warn('Not docked!')
+      return false
+    }
+    if (user.isDocking) {
+      console.warn('Already undocking!')
+      return false
+    }
+
+    const undockTime = 30 // 30 seconds to undock
+    console.log(`🚀 Starting undocking procedure... ${undockTime}s remaining`)
+
+    updateUser({
+      isDocking: true,
+      dockingTimeRemaining: undockTime,
+    })
+
+    return true
+  }, [user, updateUser])
+
   const value: UserContextType = {
     user,
     setUser,
@@ -830,6 +1032,8 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     addMoney,
     spendMoney,
     addExperience,
+    incrementCrimeTally,
+    incrementCombatTally,
     sendToJail,
     sendToHospital,
     attemptJailEscape,
@@ -859,6 +1063,8 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     hospitalTimeRemaining,
     healthLastTick,
     isLoading,
+    startDocking,
+    startUndocking,
   }
 
   useEffect(() => {

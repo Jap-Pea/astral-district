@@ -1,8 +1,9 @@
 // ShipViewer.tsx
-
-import React, { Suspense } from 'react'
+import { Suspense } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, useGLTF, Html, Environment } from '@react-three/drei'
+import type { GLTF } from 'three-stdlib'
+import type { Object3D } from 'three'
 
 type ShipViewerProps = {
   src: string // '/models/spaceship.glb'
@@ -20,7 +21,7 @@ function ShipModel({
   src: string
   initialScale?: number
 }) {
-  const { scene } = useGLTF(src) as any
+  const { scene } = useGLTF(src) as GLTF & { scene: Object3D }
 
   return (
     <primitive object={scene} scale={initialScale} position={[0, -0.1, 0]} />
@@ -37,12 +38,12 @@ export default function ShipViewer({
 }: ShipViewerProps) {
   return (
     <div style={{ width, height }}>
-      <Canvas camera={{ position: [0, 0, 3], fov: 45 }} style={{ background }}>
+      <Canvas camera={{ position: [0, 3, 10], fov: 45 }} style={{ background }}>
         {/* Lighting */}
         <ambientLight intensity={0.6} />
         <spotLight
           position={[10, 10, 10]}
-          angle={0.3}
+          angle={0.8}
           intensity={1}
           castShadow
         />
@@ -82,11 +83,6 @@ export default function ShipViewer({
 //    <ShipViewer src="/models/ship.glb" height={480} width={600} autoRotate={false} initialScale={0.8} />
 //
 // 4) If the model looks too big/small, tweak initialScale.
-//
-// 5) If you want the camera to auto-fit the model (so different ship sizes are framed perfectly),
-//    I can add a small auto-fit helper that computes bounding boxes and moves the camera — say the word.
-//
-// 6) Ensure your .glb is reasonably low-poly for smooth rotation in a small preview window.
 
 // Optional: Preload helper (uncomment and call somewhere during app startup if you want):
 // useGLTF.preload('/models/spaceship.glb')

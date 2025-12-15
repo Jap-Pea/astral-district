@@ -1,3 +1,4 @@
+//user.types.ts
 import type { InventoryItem, Item } from './item.types'
 
 export type Gender = 'male' | 'female'
@@ -32,12 +33,17 @@ export interface User {
   ship?: Ship
   cargo?: Item[]
   activeMissions?: unknown[]
+  completedMissions?: string[] // Array of completed mission IDs
   lastAction: Date
   createdAt: Date
   inventory: InventoryItem[]
   profilePic?: string // base64 image string for avatar
   profilePicOffset?: { x: number; y: number } // position offset for avatar image
   loanHistory?: LoanHistory
+  isDocked: boolean
+  dockingLocation: string | null // Which station/planet they're docked at
+  isDocking: boolean // Currently in the process of docking
+  dockingTimeRemaining: number // Seconds remaining for dock/undock
 }
 
 export interface CrimesTally {
